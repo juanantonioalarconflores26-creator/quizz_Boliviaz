@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz de Religión</title>
+<style>
+  body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #fff0b3, #ffd633);
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    color: #333;
+  }
+  header {
+    background-color: #ff9800;
+    color: white;
+    width: 100%;
+    text-align: center;
+    padding: 15px 0;
+    font-size: 28px;
+    font-weight: bold;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  }
+  .difficulty, .quiz {
+    text-align: center;
+    margin-top: 50px;
+  }
+  .btn {
+    background-color: #ff9800;
+    border: none;
+    color: white;
+    padding: 15px 30px;
+    margin: 15px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 20px;
+    transition: 0.3s;
+  }
+  .btn:hover { background-color: #e68900; transform: scale(1.05); }
+  .option {
+    display: block;
+    background-color: #f0f0f0;
+    margin: 12px auto;
+    padding: 15px;
+    width: 60%;
+    max-width: 400px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 18px;
+    transition: 0.3s;
+  }
+  .option:hover { background-color: #dfe6e9; }
+  .result {
+    font-size: 22px;
+    margin-top: 20px;
+  }
+</style>
+</head>
+<body>
+
+<header>🕊️ Quiz de Religión</header>
+
+<div class="difficulty" id="difficulty">
+  <h2>Selecciona la dificultad</h2>
+  <button class="btn" onclick="selectDifficulty('Fácil')">Fácil</button>
+  <button class="btn" onclick="selectDifficulty('Medio')">Medio</button>
+  <button class="btn" onclick="selectDifficulty('Difícil')">Difícil</button>
+  <br><button class="btn" style="background-color:#9c27b0" onclick="goBack()">⬅ Volver</button>
+</div>
+
+<div class="quiz" id="quiz" style="display:none;">
+  <h2 id="subject-title"></h2>
+  <div id="question-box" style="margin-top:30px; font-size:20px;"></div>
+  <div id="options"></div>
+  <div class="result" id="result"></div>
+  <button class="btn" id="next-btn" onclick="nextQuestion()" style="display:none;">Siguiente</button>
+</div>
+
+<script>
+let selectedDifficulty = "";
+let currentQuestion = 0;
+let score = 0;
+
+const questions = {
+  "Fácil":[
+    {q:"¿Quién es considerado el fundador del cristianismo?", options:["Jesús","Moisés","Buda","Confucio"], answer:"Jesús"},
+    {q:"¿Cuántos libros tiene la Biblia?", options:["66","50","100","12"], answer:"66"},
+    {q:"¿Qué significa 'Amor al prójimo'?", options:["Amar a los demás","Amar a uno mismo","Odiar al enemigo","Ignorar a otros"], answer:"Amar a los demás"},
+    {q:"¿Cuál es el primer libro de la Biblia?", options:["Génesis","Éxodo","Levítico","Apocalipsis"], answer:"Génesis"},
+    {q:"¿Qué representa la cruz?", options:["La muerte y resurrección de Jesús","El sol","La luna","Una montaña"], answer:"La muerte y resurrección de Jesús"},
+    {q:"¿Qué es la oración?", options:["Hablar con Dios","Un deporte","Una comida","Una canción"], answer:"Hablar con Dios"},
+    {q:"¿Qué significa 'Salmo'?", options:["Canción de alabanza","Historia","Profecía","Mandamiento"], answer:"Canción de alabanza"},
+    {q:"¿Qué es la misa?", options:["Celebración religiosa","Concierto","Fiesta","Reunión política"], answer:"Celebración religiosa"},
+    {q:"¿Quién traicionó a Jesús?", options:["Judas","Pedro","Juan","Tomás"], answer:"Judas"},
+    {q:"¿Qué representa el agua en el bautismo?", options:["Purificación","Riqueza","Poder","Alegría"], answer:"Purificación"}
+  ],
+  "Medio":[
+    {q:"¿Cuáles son los sacramentos católicos?", options:["7","3","5","10"], answer:"7"},
+    {q:"¿Qué significa el mandamiento 'No matarás'?", options:["Respetar la vida","No robar","Amar a Dios","Ayudar al prójimo"], answer:"Respetar la vida"},
+    {q:"¿Quién escribió la mayoría de las epístolas en el Nuevo Testamento?", options:["San Pablo","San Pedro","San Juan","Moisés"], answer:"San Pablo"},
+    {q:"¿Qué es la Cuaresma?", options:["Periodo de preparación a la Pascua","Fiesta","Bautizo","Viaje religioso"], answer:"Periodo de preparación a la Pascua"},
+    {q:"¿Qué significa 'Eucaristía'?", options:["Comunión","Oración","Confesión","Ayuno"], answer:"Comunión"},
+    {q:"¿Qué representan las parábolas de Jesús?", options:["Lecciones de vida","Cuentos de hadas","Canciones","Poemas"], answer:"Lecciones de vida"},
+    {q:"¿Qué día celebramos la Resurrección de Jesús?", options:["Domingo de Pascua","Viernes Santo","Navidad","Miércoles de Ceniza"], answer:"Domingo de Pascua"},
+    {q:"¿Qué es la transubstanciación?", options:["Cambio del pan y vino en cuerpo y sangre de Cristo","Cambio de lugar","Cambio de idioma","Cambio de ropa"], answer:"Cambio del pan y vino en cuerpo y sangre de Cristo"},
+    {q:"¿Quién fue el primer Papa?", options:["San Pedro","San Juan","San Pablo","San Lucas"], answer:"San Pedro"},
+    {q:"¿Qué significa la palabra 'Apóstol'?", options:["Mensajero de Dios","Sacerdote","Profeta","Rey"], answer:"Mensajero de Dios"}
+  ],
+  "Difícil":[
+    {q:"¿Cuál es el significado teológico de la Trinidad?", options:["Dios Padre, Hijo y Espíritu Santo","Tres dioses separados","Dios y dos ángeles","Tres santos"], answer:"Dios Padre, Hijo y Espíritu Santo"},
+    {q:"¿Qué es la Inmaculada Concepción?", options:["María concebida sin pecado original","Nacimiento de Jesús","Nacimiento de Moisés","Primera Biblia"], answer:"María concebida sin pecado original"},
+    {q:"¿Qué concilio definió la divinidad de Jesús?", options:["Concilio de Nicea","Concilio de Trento","Concilio Vaticano II","Concilio de Éfeso"], answer:"Concilio de Nicea"},
+    {q:"¿Qué significa 'Redención'?", options:["Salvación a través de Cristo","Odio hacia el mal","Reunión religiosa","Peregrinaje"], answer:"Salvación a través de Cristo"},
+    {q:"¿Quién escribió el libro de Apocalipsis?", options:["San Juan","San Mateo","San Lucas","San Pablo"], answer:"San Juan"},
+    {q:"¿Qué es la teología moral?", options:["Estudio de la conducta humana según Dios","Historia de la Iglesia","Oraciones","Sacramentos"], answer:"Estudio de la conducta humana según Dios"},
+    {q:"¿Qué significa 'Pentateuco'?", options:["Los primeros cinco libros de la Biblia","Libros históricos","Profecías","Salmos"], answer:"Los primeros cinco libros de la Biblia"},
+    {q:"¿Cuál es el significado de la palabra 'Evangelio'?", options:["Buena noticia","Oración","Sacramento","Profecía"], answer:"Buena noticia"},
+    {q:"¿Qué representa la parábola del hijo pródigo?", options:["Perdón y misericordia","Juicio","Castigo","Fuerza"], answer:"Perdón y misericordia"},
+    {q:"¿Qué es la catequesis?", options:["Enseñanza de la fe","Sacrificio","Oración comunitaria","Fiesta religiosa"], answer:"Enseñanza de la fe"}
+  ]
+};
+
+function goBack(){ window.location.href="index.html"; }
+
+function selectDifficulty(level){
+  selectedDifficulty=level;
+  document.getElementById("difficulty").style.display="none";
+  document.getElementById("quiz").style.display="block";
+  startQuiz();
+}
+
+function startQuiz(){
+  currentQuestion=0;
+  score=0;
+  document.getElementById("subject-title").textContent=`Religión (${selectedDifficulty})`;
+  showQuestion();
+}
+
+function showQuestion(){
+  const qList=questions[selectedDifficulty];
+  const box=document.getElementById("question-box");
+  const opts=document.getElementById("options");
+  const result=document.getElementById("result");
+  const nextBtn=document.getElementById("next-btn");
+
+  if(!qList || currentQuestion>=qList.length){
+    box.innerHTML=`<strong>¡Has terminado el quiz!</strong><br>Puntaje final: ${score}/${qList.length}`;
+    opts.innerHTML="";
+    nextBtn.style.display="none";
+    return;
+  }
+
+  const q=qList[currentQuestion];
+  box.textContent=q.q;
+  opts.innerHTML="";
+  result.textContent="";
+  nextBtn.style.display="none";
+
+  q.options.forEach(opt=>{
+    const div=document.createElement("div");
+    div.classList.add("option");
+    div.textContent=opt;
+    div.onclick=()=>checkAnswer(opt,q.answer);
+    opts.appendChild(div);
+  });
+}
+
+function checkAnswer(selected,correct){
+  const result=document.getElementById("result");
+  if(selected===correct){ result.textContent="✅ Correcto!"; score++; }
+  else{ result.textContent=`❌ Incorrecto. Respuesta: ${correct}`; }
+  document.querySelectorAll(".option").forEach(o=>o.onclick=null);
+  document.getElementById("next-btn").style.display="inline-block";
+}
+
+function nextQuestion(){
+  currentQuestion++;
+  showQuestion();
+}
+</script>
+</body>
+</html>

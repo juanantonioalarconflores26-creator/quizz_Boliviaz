@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz de Ciencias Sociales</title>
+<style>
+  body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #fbc2eb, #a6c1ee);
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    color: #333;
+    text-align: center;
+  }
+  header {
+    background-color: #9C27B0;
+    color: white;
+    width: 100%;
+    padding: 15px 0;
+    font-size: 28px;
+    font-weight: bold;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  }
+  .question-box, .option, .result, .btn, .difficulty-btn { margin: 15px; }
+  .question-box {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    width: 80%;
+    max-width: 500px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+  }
+  .option, .difficulty-btn {
+    background-color: #f0f0f0;
+    margin: 8px 0;
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+  .option:hover, .difficulty-btn:hover { background-color: #dfe6e9; }
+  .btn {
+    background-color: #4CAF50;
+    border: none;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 18px;
+    text-decoration: none;
+  }
+  .btn:hover { background-color: #45a049; }
+</style>
+</head>
+<body>
+
+<header>Ciencias Sociales 🇧🇴</header>
+
+<div id="difficulty-section" class="question-box">
+  <h3>Selecciona la dificultad:</h3>
+  <div class="difficulty-btn" onclick="startQuiz('facil')">Fácil</div>
+  <div class="difficulty-btn" onclick="startQuiz('medio')">Medio</div>
+  <div class="difficulty-btn" onclick="startQuiz('dificil')">Difícil</div>
+</div>
+
+<div class="question-box" id="question-box" style="display:none;"></div>
+<div id="options"></div>
+<div class="result" id="result"></div>
+<button class="btn" id="next-btn" onclick="nextQuestion()" style="display:none;">Siguiente</button>
+<br>
+<a href="index.html" class="btn">⬅ Volver al Menú</a>
+
+<script>
+// Preguntas de Ciencias Sociales por dificultad
+const quizQuestions = {
+  facil: [
+    {q:"La capital de Bolivia es:", options:["Sucre","La Paz","Santa Cruz","Cochabamba"], answer:"La Paz"},
+    {q:"El océano más grande del mundo es:", options:["Atlántico","Pacífico","Índico","Ártico"], answer:"Pacífico"},
+    {q:"Bolivia se divide en cuántos departamentos:", options:["7","9","10","11"], answer:"9"},
+    {q:"El idioma oficial de Bolivia es:", options:["Español","Quechua","Aymara","Todos los anteriores"], answer:"Todos los anteriores"},
+    {q:"La Revolución del 1952 en Bolivia promovió:", options:["Derechos laborales","Independencia","Colonización","Guerras"], answer:"Derechos laborales"},
+    {q:"La ONU significa:", options:["Organización de Naciones Unidas","Organización Nacional Universal","Unión de Naciones Unidas","Organización de Nuevas Naciones"], answer:"Organización de Naciones Unidas"},
+    {q:"La Edad Antigua termina con:", options:["Caída de Roma","Descubrimiento de América","Revolución Francesa","Edad Media"], answer:"Caída de Roma"},
+    {q:"El continente con más países es:", options:["África","Europa","Asia","América"], answer:"África"},
+    {q:"La Paz es:", options:["Capital constitucional","Capital administrativa","Ciudad más grande","Capital histórica"], answer:"Capital administrativa"},
+    {q:"El Salar de Uyuni se encuentra en:", options:["Potosí","Oruro","La Paz","Uyuni"], answer:"Potosí"}
+  ],
+  medio: [
+    {q:"La Guerra del Pacífico fue entre Bolivia, Chile y:", options:["Perú","Argentina","Brasil","Paraguay"], answer:"Perú"},
+    {q:"La independencia de Bolivia se proclamó en:", options:["1825","1810","1830","1809"], answer:"1825"},
+    {q:"La ONU se fundó en:", options:["1945","1919","1939","1950"], answer:"1945"},
+    {q:"El PIB mide:", options:["Producción económica","Población","Educación","Salud"], answer:"Producción económica"},
+    {q:"La Revolución Industrial inició en:", options:["Inglaterra","Francia","Alemania","EEUU"], answer:"Inglaterra"},
+    {q:"Derechos humanos básicos incluyen:", options:["Vida, libertad, educación, trabajo","Solo educación","Solo libertad","Solo trabajo"], answer:"Vida, libertad, educación, trabajo"},
+    {q:"La migración interna es:", options:["Moverse dentro del país","Mudarse a otro país","Viajar por turismo","Ir a la ciudad vecina"], answer:"Moverse dentro del país"},
+    {q:"Capital histórica de Bolivia:", options:["Sucre","La Paz","Santa Cruz","Potosí"], answer:"Sucre"},
+    {q:"El continente con mayor población:", options:["Asia","África","Europa","América"], answer:"Asia"},
+    {q:"El petróleo es un recurso:", options:["No renovable","Renovable","Inagotable","Vegetal"], answer:"No renovable"}
+  ],
+  dificil: [
+    {q:"El Tratado de Versalles terminó la:", options:["Primera Guerra Mundial","Segunda Guerra Mundial","Guerra del Pacífico","Guerra Civil Española"], answer:"Primera Guerra Mundial"},
+    {q:"El socialismo busca:", options:["Igualdad social","Mayor desigualdad","Solo economía","Solo política"], answer:"Igualdad social"},
+    {q:"La Guerra Fría enfrentó a:", options:["EEUU y URSS","Bolivia y Chile","China y Japón","Francia y Alemania"], answer:"EEUU y URSS"},
+    {q:"La globalización se refiere a:", options:["Interconexión mundial","Aislamiento de países","Colonización","Independencia"], answer:"Interconexión mundial"},
+    {q:"Economía de mercado significa:", options:["Libre competencia","Control estatal","Intercambio local","Solo comercio interno"], answer:"Libre competencia"},
+    {q:"El neoliberalismo busca:", options:["Reducir intervención del Estado","Incrementar control del Estado","Socializar empresas","Nacionalizar recursos"], answer:"Reducir intervención del Estado"},
+    {q:"La ONU promueve:", options:["Paz y cooperación internacional","Guerras","Colonización","Control económico"], answer:"Paz y cooperación internacional"},
+    {q:"La migración internacional puede ser:", options:["Voluntaria o forzada","Solo voluntaria","Solo forzada","Nunca ocurre"], answer:"Voluntaria o forzada"},
+    {q:"La industrialización masiva comenzó en:", options:["Siglo XVIII","Siglo XV","Siglo XX","Siglo XVI"], answer:"Siglo XVIII"},
+    {q:"La teoría del contrato social fue propuesta por:", options:["Rousseau","Newton","Marx","Aristóteles"], answer:"Rousseau"}
+  ]
+};
+
+let questions = [];
+let currentQuestion = 0;
+let score = 0;
+
+function startQuiz(difficulty){
+  questions = quizQuestions[difficulty];
+  currentQuestion = 0;
+  score = 0;
+  document.getElementById("difficulty-section").style.display="none";
+  document.getElementById("question-box").style.display="block";
+  showQuestion();
+}
+
+function showQuestion(){
+  const box=document.getElementById("question-box");
+  const opts=document.getElementById("options");
+  const result=document.getElementById("result");
+  const nextBtn=document.getElementById("next-btn");
+
+  if(currentQuestion>=questions.length){
+    box.innerHTML=`<strong>¡Has terminado el quiz!</strong><br>Puntaje final: ${score}/${questions.length}`;
+    opts.innerHTML="";
+    nextBtn.style.display="none";
+    return;
+  }
+
+  const q=questions[currentQuestion];
+  box.textContent=q.q;
+  opts.innerHTML="";
+  result.textContent="";
+  nextBtn.style.display="none";
+
+  q.options.forEach(opt=>{
+    const div=document.createElement("div");
+    div.classList.add("option");
+    div.textContent=opt;
+    div.onclick=()=>checkAnswer(opt,q.answer);
+    opts.appendChild(div);
+  });
+}
+
+function checkAnswer(selected, correct){
+  const result=document.getElementById("result");
+  if(selected===correct){
+    result.textContent="✅ Correcto!";
+    score++;
+  } else {
+    result.textContent=`❌ Incorrecto. Respuesta: ${correct}`;
+  }
+  document.querySelectorAll(".option").forEach(o=>o.onclick=null);
+  document.getElementById("next-btn").style.display="inline-block";
+}
+
+function nextQuestion(){
+  currentQuestion++;
+  showQuestion();
+}
+</script>
+
+</body>
+</html>

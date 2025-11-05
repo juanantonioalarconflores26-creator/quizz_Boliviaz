@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz de Educación Física</title>
+<style>
+  body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #c2f0f7, #a1e3d8);
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    color: #333;
+    text-align: center;
+  }
+  header {
+    background-color: #009688;
+    color: white;
+    width: 100%;
+    padding: 15px 0;
+    font-size: 28px;
+    font-weight: bold;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  }
+  .question-box, .option, .result, .btn, .difficulty-btn { margin: 15px; }
+  .question-box {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    width: 80%;
+    max-width: 500px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+  }
+  .option, .difficulty-btn {
+    background-color: #f0f0f0;
+    margin: 8px 0;
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+  .option:hover, .difficulty-btn:hover { background-color: #dfe6e9; }
+  .btn {
+    background-color: #4CAF50;
+    border: none;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 18px;
+    text-decoration: none;
+  }
+  .btn:hover { background-color: #45a049; }
+</style>
+</head>
+<body>
+
+<header>Educación Física 🏃‍♂️</header>
+
+<div id="difficulty-section" class="question-box">
+  <h3>Selecciona la dificultad:</h3>
+  <div class="difficulty-btn" onclick="startQuiz('facil')">Fácil</div>
+  <div class="difficulty-btn" onclick="startQuiz('medio')">Medio</div>
+  <div class="difficulty-btn" onclick="startQuiz('dificil')">Difícil</div>
+</div>
+
+<div class="question-box" id="question-box" style="display:none;"></div>
+<div id="options"></div>
+<div class="result" id="result"></div>
+<button class="btn" id="next-btn" onclick="nextQuestion()" style="display:none;">Siguiente</button>
+<br>
+<a href="index.html" class="btn">⬅ Volver al Menú</a>
+
+<script>
+// Preguntas de Educación Física por dificultad
+const quizQuestions = {
+  facil: [
+    {q:"El calentamiento sirve para:", options:["Preparar el cuerpo para el ejercicio","Dormir","Comer","Estudiar"], answer:"Preparar el cuerpo para el ejercicio"},
+    {q:"Correr, saltar y nadar son ejemplos de:", options:["Actividades físicas","Lectura","Escritura","Pintura"], answer:"Actividades físicas"},
+    {q:"El estiramiento ayuda a:", options:["Evitar lesiones","Correr más rápido","Dormir mejor","Estudiar mejor"], answer:"Evitar lesiones"},
+    {q:"El deporte de equipo más común es:", options:["Fútbol","Ajedrez","Pintura","Canto"], answer:"Fútbol"},
+    {q:"El corazón es un órgano importante para:", options:["La circulación de la sangre","La digestión","La respiración","El sueño"], answer:"La circulación de la sangre"},
+    {q:"El agua es importante durante el ejercicio porque:", options:["Hidrata el cuerpo","Engorda","Debilita los músculos","No sirve"], answer:"Hidrata el cuerpo"},
+    {q:"Saltar la cuerda es un ejercicio de:", options:["Cardiovascular","Mental","De escritura","De pintura"], answer:"Cardiovascular"},
+    {q:"Caminar diariamente ayuda a:", options:["Mantener buena salud","Aprender a leer","Escribir mejor","Cantar"], answer:"Mantener buena salud"},
+    {q:"El descanso es importante porque:", options:["Recupera el cuerpo","Hace daño","No importa","Hace cansar"], answer:"Recupera el cuerpo"},
+    {q:"El ejercicio mejora:", options:["La fuerza, resistencia y flexibilidad","Solo la fuerza","Solo la memoria","Solo la lectura"], answer:"La fuerza, resistencia y flexibilidad"}
+  ],
+  medio: [
+    {q:"El VO2 máximo mide:", options:["Capacidad aeróbica","Fuerza de brazos","Flexibilidad","Coordinación"], answer:"Capacidad aeróbica"},
+    {q:"La resistencia muscular se entrena con:", options:["Ejercicios repetitivos con peso","Dormir","Estudiar","Comer"], answer:"Ejercicios repetitivos con peso"},
+    {q:"El entrenamiento de fuerza mejora:", options:["Masa muscular","El corazón","La memoria","La vista"], answer:"Masa muscular"},
+    {q:"El ejercicio anaeróbico es:", options:["Corto e intenso","Largo y suave","Solo caminar","Solo nadar"], answer:"Corto e intenso"},
+    {q:"El ritmo cardíaco ideal durante ejercicio se llama:", options:["Zona de entrenamiento","Zona de descanso","Zona de lectura","Zona de sueño"], answer:"Zona de entrenamiento"},
+    {q:"El stretching ayuda a:", options:["Flexibilidad y relajación","Correr más rápido","Dormir menos","Comer más"], answer:"Flexibilidad y relajación"},
+    {q:"El deporte de resistencia es:", options:["Maratón","Fútbol","Baloncesto","Natación corta"], answer:"Maratón"},
+    {q:"El deporte de velocidad se entrena con:", options:["Sprints","Yoga","Pilates","Estiramiento"], answer:"Sprints"},
+    {q:"La coordinación se desarrolla con:", options:["Ejercicios de habilidad","Comer","Dormir","Correr lento"], answer:"Ejercicios de habilidad"},
+    {q:"El calentamiento dinámico es:", options:["Movimiento antes de entrenar","Dormir","Comer","Estudiar"], answer:"Movimiento antes de entrenar"}
+  ],
+  dificil: [
+    {q:"La frecuencia cardíaca máxima se calcula con:", options:["220 - edad","200 + edad","100 x edad","Edad / 2"], answer:"220 - edad"},
+    {q:"El entrenamiento HIIT es:", options:["Intervalos de alta intensidad","Ejercicio suave","Estiramiento","Caminata"], answer:"Intervalos de alta intensidad"},
+    {q:"El principio de sobrecarga indica:", options:["Aumentar gradualmente la intensidad","No entrenar","Solo descansar","Comer más"], answer:"Aumentar gradualmente la intensidad"},
+    {q:"La flexibilidad se mide con:", options:["Test de sit and reach","Prueba de fuerza","Test de velocidad","Test de memoria"], answer:"Test de sit and reach"},
+    {q:"El deporte olímpico más antiguo es:", options:["Lucha grecorromana","Fútbol","Baloncesto","Natación"], answer:"Lucha grecorromana"},
+    {q:"La resistencia aeróbica depende de:", options:["Corazón y pulmones","Solo piernas","Solo brazos","Solo cabeza"], answer:"Corazón y pulmones"},
+    {q:"El entrenamiento pliométrico se utiliza para:", options:["Potencia y salto","Flexibilidad","Estiramiento","Cardio"], answer:"Potencia y salto"},
+    {q:"El índice de masa corporal (IMC) relaciona:", options:["Peso y altura","Edad y velocidad","Fuerza y flexibilidad","Frecuencia cardíaca y respiración"], answer:"Peso y altura"},
+    {q:"El VO2 máximo se mejora con:", options:["Ejercicio aeróbico","Descanso","Comer más","Dormir"], answer:"Ejercicio aeróbico"},
+    {q:"El principio de especificidad dice:", options:["El entrenamiento debe ser específico al objetivo","Cualquier ejercicio sirve","No importa intensidad","Solo descanso"], answer:"El entrenamiento debe ser específico al objetivo"}
+  ]
+};
+
+let questions = [];
+let currentQuestion = 0;
+let score = 0;
+
+function startQuiz(difficulty){
+  questions = quizQuestions[difficulty];
+  currentQuestion = 0;
+  score = 0;
+  document.getElementById("difficulty-section").style.display="none";
+  document.getElementById("question-box").style.display="block";
+  showQuestion();
+}
+
+function showQuestion(){
+  const box=document.getElementById("question-box");
+  const opts=document.getElementById("options");
+  const result=document.getElementById("result");
+  const nextBtn=document.getElementById("next-btn");
+
+  if(currentQuestion>=questions.length){
+    box.innerHTML=`<strong>¡Has terminado el quiz!</strong><br>Puntaje final: ${score}/${questions.length}`;
+    opts.innerHTML="";
+    nextBtn.style.display="none";
+    return;
+  }
+
+  const q=questions[currentQuestion];
+  box.textContent=q.q;
+  opts.innerHTML="";
+  result.textContent="";
+  nextBtn.style.display="none";
+
+  q.options.forEach(opt=>{
+    const div=document.createElement("div");
+    div.classList.add("option");
+    div.textContent=opt;
+    div.onclick=()=>checkAnswer(opt,q.answer);
+    opts.appendChild(div);
+  });
+}
+
+function checkAnswer(selected, correct){
+  const result=document.getElementById("result");
+  if(selected===correct){
+    result.textContent="✅ Correcto!";
+    score++;
+  } else {
+    result.textContent=`❌ Incorrecto. Respuesta: ${correct}`;
+  }
+  document.querySelectorAll(".option").forEach(o=>o.onclick=null);
+  document.getElementById("next-btn").style.display="inline-block";
+}
+
+function nextQuestion(){
+  currentQuestion++;
+  showQuestion();
+}
+</script>
+
+</body>
+</html>

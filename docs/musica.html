@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz de Música</title>
+<style>
+  body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #a1c4fd, #c2e9fb);
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    color: #333;
+  }
+  header {
+    background-color: #2196f3;
+    color: white;
+    width: 100%;
+    text-align: center;
+    padding: 15px 0;
+    font-size: 28px;
+    font-weight: bold;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  }
+  .difficulty, .quiz {
+    text-align: center;
+    margin-top: 50px;
+  }
+  .btn {
+    background-color: #2196f3;
+    border: none;
+    color: white;
+    padding: 15px 30px;
+    margin: 15px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 20px;
+    transition: 0.3s;
+  }
+  .btn:hover { background-color: #1976d2; transform: scale(1.05); }
+  .option {
+    display: block;
+    background-color: #f0f0f0;
+    margin: 12px auto;
+    padding: 15px;
+    width: 60%;
+    max-width: 400px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 18px;
+    transition: 0.3s;
+  }
+  .option:hover { background-color: #dfe6e9; }
+  .result {
+    font-size: 22px;
+    margin-top: 20px;
+  }
+</style>
+</head>
+<body>
+
+<header>🎵 Quiz de Música</header>
+
+<div class="difficulty" id="difficulty">
+  <h2>Selecciona la dificultad</h2>
+  <button class="btn" onclick="selectDifficulty('Fácil')">Fácil</button>
+  <button class="btn" onclick="selectDifficulty('Medio')">Medio</button>
+  <button class="btn" onclick="selectDifficulty('Difícil')">Difícil</button>
+  <br><button class="btn" style="background-color:#e91e63" onclick="goBack()">⬅ Volver</button>
+</div>
+
+<div class="quiz" id="quiz" style="display:none;">
+  <h2 id="subject-title"></h2>
+  <div id="question-box" style="margin-top:30px; font-size:20px;"></div>
+  <div id="options"></div>
+  <div class="result" id="result"></div>
+  <button class="btn" id="next-btn" onclick="nextQuestion()" style="display:none;">Siguiente</button>
+</div>
+
+<script>
+let selectedDifficulty = "";
+let currentQuestion = 0;
+let score = 0;
+
+const questions = {
+  "Fácil":[
+    {q:"Instrumento de cuerda:",options:["Guitarra","Batería","Flauta","Trompeta"],answer:"Guitarra"},
+    {q:"Clásico compositor alemán:",options:["Beethoven","Shakira","Mozart","Coldplay"],answer:"Beethoven"},
+    {q:"Símbolo musical que indica silencio:",options:["Silencio","Clave de sol","Corchea","Redonda"],answer:"Silencio"},
+    {q:"Número de notas en una escala musical:",options:["7","5","12","10"],answer:"7"},
+    {q:"Instrumento de percusión:",options:["Batería","Piano","Violín","Guitarra"],answer:"Batería"},
+    {q:"Clave que se usa en violín:",options:["Sol","Fa","Do","Re"],answer:"Sol"},
+    {q:"Símbolo que alarga el sonido:",options:["Puntillo","Ligadura","Corchea","Silencio"],answer:"Puntillo"},
+    {q:"El piano es un instrumento de:",options:["Teclas","Cuerda","Percusión","Viento"],answer:"Teclas"},
+    {q:"La flauta es de:",options:["Viento","Cuerda","Percusión","Teclas"],answer:"Viento"},
+    {q:"Duración de una negra:",options:["1 tiempo","2 tiempos","4 tiempos","Medio tiempo"],answer:"1 tiempo"}
+  ],
+  "Medio":[
+    {q:"Compás de 3/4 se llama:",options:["Compás de vals","Compás binario","Compás cuaternario","Compás libre"],answer:"Compás de vals"},
+    {q:"Notas musicales en orden ascendente:",options:["Do Re Mi Fa Sol La Si","Si La Sol Fa Mi Re Do","Do Mi Sol Si La Re Fa","Fa Sol La Si Do Re Mi"],answer:"Do Re Mi Fa Sol La Si"},
+    {q:"Instrumento de viento madera:",options:["Clarinete","Trompeta","Batería","Guitarra"],answer:"Clarinete"},
+    {q:"Intervalo de octava:",options:["8 notas","7 notas","5 notas","12 notas"],answer:"8 notas"},
+    {q:"Dinámica que indica suavidad:",options:["Piano","Forte","Mezzo","Sforzando"],answer:"Piano"},
+    {q:"Melodía principal en una composición:",options:["Tema","Acompañamiento","Contrapunto","Silencio"],answer:"Tema"},
+    {q:"Compás de 4/4:",options:["Cuaternario","Binario","Ternario","Libre"],answer:"Cuaternario"},
+    {q:"Compositor de 'Las cuatro estaciones':",options:["Vivaldi","Beethoven","Bach","Mozart"],answer:"Vivaldi"},
+    {q:"Figura musical que dura medio tiempo:",options:["Corchea","Negra","Blanca","Redonda"],answer:"Corchea"},
+    {q:"Instrumento de percusión afinable:",options:["Xilófono","Bombo","Tambor","Platillos"],answer:"Xilófono"}
+  ],
+  "Difícil":[
+    {q:"Intervalo de quinta justa:",options:["7 semitonos","5 semitonos","6 semitonos","8 semitonos"],answer:"7 semitonos"},
+    {q:"Compositor de música impresionista:",options:["Debussy","Beethoven","Mozart","Chopin"],answer:"Debussy"},
+    {q:"Clave que se usa en violonchelo:",options:["Fa","Sol","Do","Re"],answer:"Fa"},
+    {q:"Serie de notas que forma un acorde:",options:["Tónica, tercera, quinta","Tónica, segunda, cuarta","Tónica, cuarta, sexta","Tónica, tercera, sexta"],answer:"Tónica, tercera, quinta"},
+    {q:"Alteración que sube un semitono:",options:["Sostenido","Bemol","Natural","Redonda"],answer:"Sostenido"},
+    {q:"Compositor de 'Sinfonía del Nuevo Mundo':",options:["Dvořák","Beethoven","Brahms","Tchaikovsky"],answer:"Dvořák"},
+    {q:"Figura que dura dos tiempos:",options:["Negra con puntillo","Corchea","Blanca","Redonda"],answer:"Blanca"},
+    {q:"Escala menor armónica:",options:["Do Re Mi Fa Sol La Si♯","Do Re Mi Fa Sol La Si","Do Re Mi Fa Sol La Si♭","Do Re Mi Fa Sol La Si♮"],answer:"Do Re Mi Fa Sol La Si♯"},
+    {q:"Tempo rápido en música:",options:["Allegro","Adagio","Andante","Lento"],answer:"Allegro"},
+    {q:"Composición para instrumento solo:",options:["Sonata","Sinfonía","Ópera","Concierto"],answer:"Sonata"}
+  ]
+};
+
+function goBack(){ window.location.href="index.html"; }
+
+function selectDifficulty(level){
+  selectedDifficulty=level;
+  document.getElementById("difficulty").style.display="none";
+  document.getElementById("quiz").style.display="block";
+  startQuiz();
+}
+
+function startQuiz(){
+  currentQuestion=0;
+  score=0;
+  document.getElementById("subject-title").textContent=`Música (${selectedDifficulty})`;
+  showQuestion();
+}
+
+function showQuestion(){
+  const qList=questions[selectedDifficulty];
+  const box=document.getElementById("question-box");
+  const opts=document.getElementById("options");
+  const result=document.getElementById("result");
+  const nextBtn=document.getElementById("next-btn");
+
+  if(!qList || currentQuestion>=qList.length){
+    box.innerHTML=`<strong>¡Has terminado el quiz!</strong><br>Puntaje final: ${score}/${qList.length}`;
+    opts.innerHTML="";
+    nextBtn.style.display="none";
+    return;
+  }
+
+  const q=qList[currentQuestion];
+  box.textContent=q.q;
+  opts.innerHTML="";
+  result.textContent="";
+  nextBtn.style.display="none";
+
+  q.options.forEach(opt=>{
+    const div=document.createElement("div");
+    div.classList.add("option");
+    div.textContent=opt;
+    div.onclick=()=>checkAnswer(opt,q.answer);
+    opts.appendChild(div);
+  });
+}
+
+function checkAnswer(selected,correct){
+  const result=document.getElementById("result");
+  if(selected===correct){ result.textContent="✅ Correcto!"; score++; }
+  else{ result.textContent=`❌ Incorrecto. Respuesta: ${correct}`; }
+  document.querySelectorAll(".option").forEach(o=>o.onclick=null);
+  document.getElementById("next-btn").style.display="inline-block";
+}
+
+function nextQuestion(){
+  currentQuestion++;
+  showQuestion();
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz de Inglés</title>
+<style>
+  body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #ffe6e6, #ffb3b3);
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    color: #333;
+  }
+  header {
+    background-color: #e91e63;
+    color: white;
+    width: 100%;
+    text-align: center;
+    padding: 15px 0;
+    font-size: 28px;
+    font-weight: bold;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  }
+  .difficulty, .quiz {
+    text-align: center;
+    margin-top: 50px;
+  }
+  .btn {
+    background-color: #e91e63;
+    border: none;
+    color: white;
+    padding: 15px 30px;
+    margin: 15px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 20px;
+    transition: 0.3s;
+  }
+  .btn:hover { background-color: #c2185b; transform: scale(1.05); }
+  .option {
+    display: block;
+    background-color: #f0f0f0;
+    margin: 12px auto;
+    padding: 15px;
+    width: 60%;
+    max-width: 400px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 18px;
+    transition: 0.3s;
+  }
+  .option:hover { background-color: #dfe6e9; }
+  .result {
+    font-size: 22px;
+    margin-top: 20px;
+  }
+</style>
+</head>
+<body>
+
+<header>📝 Quiz de Inglés</header>
+
+<div class="difficulty" id="difficulty">
+  <h2>Selecciona la dificultad</h2>
+  <button class="btn" onclick="selectDifficulty('Fácil')">Fácil</button>
+  <button class="btn" onclick="selectDifficulty('Medio')">Medio</button>
+  <button class="btn" onclick="selectDifficulty('Difícil')">Difícil</button>
+  <br><button class="btn" style="background-color:#9c27b0" onclick="goBack()">⬅ Volver</button>
+</div>
+
+<div class="quiz" id="quiz" style="display:none;">
+  <h2 id="subject-title"></h2>
+  <div id="question-box" style="margin-top:30px; font-size:20px;"></div>
+  <div id="options"></div>
+  <div class="result" id="result"></div>
+  <button class="btn" id="next-btn" onclick="nextQuestion()" style="display:none;">Siguiente</button>
+</div>
+
+<script>
+let selectedDifficulty = "";
+let currentQuestion = 0;
+let score = 0;
+
+const questions = {
+  "Fácil":[
+    {q:"How do you say 'Hola' in English?", options:["Hello","Bye","Please","Thanks"], answer:"Hello"},
+    {q:"What is the color of the sky?", options:["Blue","Red","Green","Yellow"], answer:"Blue"},
+    {q:"How do you say 'Gracias' in English?", options:["Thanks","Sorry","Hello","Goodbye"], answer:"Thanks"},
+    {q:"What is the opposite of 'Big'?", options:["Small","Tall","Long","Short"], answer:"Small"},
+    {q:"How do you say 'Perro' in English?", options:["Dog","Cat","Bird","Fish"], answer:"Dog"},
+    {q:"What day comes after Monday?", options:["Tuesday","Sunday","Friday","Thursday"], answer:"Tuesday"},
+    {q:"What is 5 + 3?", options:["8","7","9","6"], answer:"8"},
+    {q:"How do you say 'Adiós' in English?", options:["Goodbye","Hello","Thanks","Please"], answer:"Goodbye"},
+    {q:"What is the first letter of the English alphabet?", options:["A","B","C","D"], answer:"A"},
+    {q:"How do you say 'Casa' in English?", options:["House","Car","Tree","Chair"], answer:"House"}
+  ],
+  "Medio":[
+    {q:"Choose the correct form: She ___ to school every day.", options:["goes","go","gone","going"], answer:"goes"},
+    {q:"What is the plural of 'child'?", options:["children","childs","childes","child"], answer:"children"},
+    {q:"Which word is an adjective?", options:["Beautiful","Run","Quickly","Eat"], answer:"Beautiful"},
+    {q:"Choose the correct verb: I ___ my homework yesterday.", options:["did","do","does","doing"], answer:"did"},
+    {q:"What is the opposite of 'Happy'?", options:["Sad","Angry","Tired","Excited"], answer:"Sad"},
+    {q:"Translate: 'Me gusta leer'.", options:["I like to read","I like reading","I love to read","All correct"], answer:"All correct"},
+    {q:"Which is a question?", options:["What is your name?","My name is John","I like pizza","She runs fast"], answer:"What is your name?"},
+    {q:"Choose the correct article: ___ apple a day keeps the doctor away.", options:["An","A","The","No article"], answer:"An"},
+    {q:"What is the past tense of 'go'?", options:["went","goed","gone","going"], answer:"went"},
+    {q:"Which word is a noun?", options:["Book","Run","Quickly","Eat"], answer:"Book"}
+  ],
+  "Difícil":[
+    {q:"Complete: If I ___ rich, I would travel the world.", options:["were","was","am","be"], answer:"were"},
+    {q:"Choose the correct form: He wishes he ___ taller.", options:["were","was","is","be"], answer:"were"},
+    {q:"Which is the correct sentence?", options:["I have been to London","I has been to London","I had be to London","I am been to London"], answer:"I have been to London"},
+    {q:"Choose the correct conditional: If it rains, we ___ stay home.", options:["will","would","shall","must"], answer:"will"},
+    {q:"Identify the phrasal verb: 'give up'", options:["to quit","to start","to continue","to create"], answer:"to quit"},
+    {q:"Which sentence is passive voice?", options:["The cake was eaten by John","John eats the cake","John is eating the cake","John will eat the cake"], answer:"The cake was eaten by John"},
+    {q:"Choose correct reported speech: He said, 'I am tired'", options:["He said he was tired","He said he is tired","He said he were tired","He said he will be tired"], answer:"He said he was tired"},
+    {q:"Identify the synonym of 'difficult'", options:["Hard","Easy","Simple","Quick"], answer:"Hard"},
+    {q:"Choose the correct tense: By next year, I ___ finished my project.", options:["will have","will","have","had"], answer:"will have"},
+    {q:"Which sentence uses a relative clause?", options:["The man who is tall is my uncle","I eat pizza","She runs fast","He reads books"], answer:"The man who is tall is my uncle"}
+  ]
+};
+
+function goBack(){ window.location.href="index.html"; }
+
+function selectDifficulty(level){
+  selectedDifficulty=level;
+  document.getElementById("difficulty").style.display="none";
+  document.getElementById("quiz").style.display="block";
+  startQuiz();
+}
+
+function startQuiz(){
+  currentQuestion=0;
+  score=0;
+  document.getElementById("subject-title").textContent=`Inglés (${selectedDifficulty})`;
+  showQuestion();
+}
+
+function showQuestion(){
+  const qList=questions[selectedDifficulty];
+  const box=document.getElementById("question-box");
+  const opts=document.getElementById("options");
+  const result=document.getElementById("result");
+  const nextBtn=document.getElementById("next-btn");
+
+  if(!qList || currentQuestion>=qList.length){
+    box.innerHTML=`<strong>¡Has terminado el quiz!</strong><br>Puntaje final: ${score}/${qList.length}`;
+    opts.innerHTML="";
+    nextBtn.style.display="none";
+    return;
+  }
+
+  const q=qList[currentQuestion];
+  box.textContent=q.q;
+  opts.innerHTML="";
+  result.textContent="";
+  nextBtn.style.display="none";
+
+  q.options.forEach(opt=>{
+    const div=document.createElement("div");
+    div.classList.add("option");
+    div.textContent=opt;
+    div.onclick=()=>checkAnswer(opt,q.answer);
+    opts.appendChild(div);
+  });
+}
+
+function checkAnswer(selected,correct){
+  const result=document.getElementById("result");
+  if(selected===correct){ result.textContent="✅ Correcto!"; score++; }
+  else{ result.textContent=`❌ Incorrecto. Respuesta: ${correct}`; }
+  document.querySelectorAll(".option").forEach(o=>o.onclick=null);
+  document.getElementById("next-btn").style.display="inline-block";
+}
+
+function nextQuestion(){
+  currentQuestion++;
+  showQuestion();
+}
+</script>
+</body>
+</html>

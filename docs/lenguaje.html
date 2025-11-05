@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz de Lenguaje</title>
+<style>
+  body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #ffd3b6, #ffaaa5);
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    color: #333;
+  }
+  header {
+    background-color: #ff5722;
+    color: white;
+    width: 100%;
+    text-align: center;
+    padding: 15px 0;
+    font-size: 28px;
+    font-weight: bold;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  }
+  .difficulty, .quiz {
+    text-align: center;
+    margin-top: 50px;
+  }
+  .btn {
+    background-color: #ff5722;
+    border: none;
+    color: white;
+    padding: 15px 30px;
+    margin: 15px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 20px;
+    transition: 0.3s;
+  }
+  .btn:hover { background-color: #e64a19; transform: scale(1.05); }
+  .option {
+    display: block;
+    background-color: #f0f0f0;
+    margin: 12px auto;
+    padding: 15px;
+    width: 60%;
+    max-width: 400px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 18px;
+    transition: 0.3s;
+  }
+  .option:hover { background-color: #dfe6e9; }
+  .result {
+    font-size: 22px;
+    margin-top: 20px;
+  }
+</style>
+</head>
+<body>
+
+<header>📝 Quiz de Lenguaje</header>
+
+<div class="difficulty" id="difficulty">
+  <h2>Selecciona la dificultad</h2>
+  <button class="btn" onclick="selectDifficulty('Fácil')">Fácil</button>
+  <button class="btn" onclick="selectDifficulty('Medio')">Medio</button>
+  <button class="btn" onclick="selectDifficulty('Difícil')">Difícil</button>
+  <br><button class="btn" style="background-color:#e91e63" onclick="goBack()">⬅ Volver</button>
+</div>
+
+<div class="quiz" id="quiz" style="display:none;">
+  <h2 id="subject-title"></h2>
+  <div id="question-box" style="margin-top:30px; font-size:20px;"></div>
+  <div id="options"></div>
+  <div class="result" id="result"></div>
+  <button class="btn" id="next-btn" onclick="nextQuestion()" style="display:none;">Siguiente</button>
+</div>
+
+<script>
+let selectedDifficulty = "";
+let currentQuestion = 0;
+let score = 0;
+
+const questions = {
+  "Fácil":[
+    {q:"Sinónimo de 'rápido':",options:["Veloz","Lento","Pesado","Frágil"],answer:"Veloz"},
+    {q:"Antónimo de 'feliz':",options:["Triste","Contento","Alegre","Optimista"],answer:"Triste"},
+    {q:"La palabra 'perro' es un:",options:["Sustantivo","Verbo","Adjetivo","Adverbio"],answer:"Sustantivo"},
+    {q:"Plural de 'luz':",options:["luces","luzes","luzz","luceses"],answer:"luces"},
+    {q:"Artículo definido:",options:["el","una","unos","cualquier"],answer:"el"},
+    {q:"El sujeto de una oración:",options:["Realiza la acción","Recibe la acción","Modifica el verbo","Es un adjetivo"],answer:"Realiza la acción"},
+    {q:"Pronombre personal:",options:["yo","perro","correr","rápidamente"],answer:"yo"},
+    {q:"Tiempo verbal de 'caminé':",options:["Pasado","Presente","Futuro","Condicional"],answer:"Pasado"},
+    {q:"Adjetivo en 'casa grande':",options:["grande","casa","correr","rápido"],answer:"grande"},
+    {q:"Oración correcta:",options:["Él come manzana","Él come manzanas","Él comer manzana","Él comé manzana"],answer:"Él come manzana"}
+  ],
+  "Medio":[
+    {q:"El verbo 'amar' está en:",options:["Infinitivo","Participio","Gerundio","Indicativo"],answer:"Infinitivo"},
+    {q:"Sinónimo de 'enorme':",options:["Gigante","Pequeño","Delgado","Bajo"],answer:"Gigante"},
+    {q:"Oración compuesta:",options:["Tiene más de un verbo","Tiene un solo verbo","No tiene sujeto","Es solo un sustantivo"],answer:"Tiene más de un verbo"},
+    {q:"Antónimo de 'oscuro':",options:["Claro","Negro","Sombrío","Noche"],answer:"Claro"},
+    {q:"La palabra 'rápidamente' es un:",options:["Adverbio","Sustantivo","Verbo","Adjetivo"],answer:"Adverbio"},
+    {q:"Plural de 'análisis':",options:["análisis","analisis","analíses","analises"],answer:"análisis"},
+    {q:"Uso correcto de comas:",options:["Separar elementos en una lista","Unir oraciones","Al final de un párrafo","Nunca"],answer:"Separar elementos en una lista"},
+    {q:"Pronombre relativo:",options:["que","él","rápido","correr"],answer:"que"},
+    {q:"Oración interrogativa:",options:["¿Cómo estás?","Yo estoy bien.","Está bien.","Comiendo estoy."],answer:"¿Cómo estás?"},
+    {q:"Adjetivo calificativo:",options:["Bonito","Correr","Rápidamente","Verde"],answer:"Bonito"}
+  ],
+  "Difícil":[
+    {q:"El uso de 'si' condicional:",options:["Si estudias, aprobarás","Si estudiás, apruebas","Estudia si aprobarás","Si aprobarás estudia"],answer:"Si estudias, aprobarás"},
+    {q:"Sinonimia compleja de 'perspicaz':",options:["Agudo","Tonto","Lento","Ruidoso"],answer:"Agudo"},
+    {q:"Analiza 'Aunque llueva, saldré':",options:["Oración subordinada","Oración simple","Oración imperativa","Oración copulativa"],answer:"Oración subordinada"},
+    {q:"Antónimo avanzado de 'efímero':",options:["Duradero","Corto","Rápido","Ligero"],answer:"Duradero"},
+    {q:"Verbo irregular:",options:["Ir","Correr","Caminar","Comer"],answer:"Ir"},
+    {q:"Figura literaria de repetición:",options:["Anáfora","Metáfora","Hipérbole","Personificación"],answer:"Anáfora"},
+    {q:"Complemento directo en 'María leyó el libro':",options:["el libro","María","leyó","ninguno"],answer:"el libro"},
+    {q:"Sujeto tácito en:",options:["Corro rápido","Yo corro rápido","Ellos corren","Nosotros corremos"],answer:"Corro rápido"},
+    {q:"Tiempo verbal de 'habré comido':",options:["Futuro perfecto","Presente","Pretérito","Condicional"],answer:"Futuro perfecto"},
+    {q:"Oración pasiva:",options:["El libro fue leído por María","María leyó el libro","Comí manzanas","Ellos corren"],answer:"El libro fue leído por María"}
+  ]
+};
+
+function goBack(){ window.location.href="index.html"; }
+
+function selectDifficulty(level){
+  selectedDifficulty=level;
+  document.getElementById("difficulty").style.display="none";
+  document.getElementById("quiz").style.display="block";
+  startQuiz();
+}
+
+function startQuiz(){
+  currentQuestion=0;
+  score=0;
+  document.getElementById("subject-title").textContent=`Lenguaje (${selectedDifficulty})`;
+  showQuestion();
+}
+
+function showQuestion(){
+  const qList=questions[selectedDifficulty];
+  const box=document.getElementById("question-box");
+  const opts=document.getElementById("options");
+  const result=document.getElementById("result");
+  const nextBtn=document.getElementById("next-btn");
+
+  if(!qList || currentQuestion>=qList.length){
+    box.innerHTML=`<strong>¡Has terminado el quiz!</strong><br>Puntaje final: ${score}/${qList.length}`;
+    opts.innerHTML="";
+    nextBtn.style.display="none";
+    return;
+  }
+
+  const q=qList[currentQuestion];
+  box.textContent=q.q;
+  opts.innerHTML="";
+  result.textContent="";
+  nextBtn.style.display="none";
+
+  q.options.forEach(opt=>{
+    const div=document.createElement("div");
+    div.classList.add("option");
+    div.textContent=opt;
+    div.onclick=()=>checkAnswer(opt,q.answer);
+    opts.appendChild(div);
+  });
+}
+
+function checkAnswer(selected,correct){
+  const result=document.getElementById("result");
+  if(selected===correct){ result.textContent="✅ Correcto!"; score++; }
+  else{ result.textContent=`❌ Incorrecto. Respuesta: ${correct}`; }
+  document.querySelectorAll(".option").forEach(o=>o.onclick=null);
+  document.getElementById("next-btn").style.display="inline-block";
+}
+
+function nextQuestion(){
+  currentQuestion++;
+  showQuestion();
+}
+</script>
+</body>
+</html>

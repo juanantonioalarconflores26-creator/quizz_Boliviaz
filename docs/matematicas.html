@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz de Matemática</title>
+<style>
+  body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #F6D365, #FDA085);
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    color: #333;
+    text-align: center;
+  }
+  header {
+    background-color: #FF5722;
+    color: white;
+    width: 100%;
+    padding: 15px 0;
+    font-size: 28px;
+    font-weight: bold;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  }
+  .question-box, .option, .result, .btn, .difficulty-btn { margin: 15px; }
+  .question-box {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    width: 80%;
+    max-width: 500px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+  }
+  .option, .difficulty-btn {
+    background-color: #f0f0f0;
+    margin: 8px 0;
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+  .option:hover, .difficulty-btn:hover { background-color: #dfe6e9; }
+  .btn {
+    background-color: #4CAF50;
+    border: none;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 18px;
+    text-decoration: none;
+  }
+  .btn:hover { background-color: #45a049; }
+</style>
+</head>
+<body>
+
+<header>Matemática 🧮</header>
+
+<div id="difficulty-section" class="question-box">
+  <h3>Selecciona la dificultad:</h3>
+  <div class="difficulty-btn" onclick="startQuiz('facil')">Fácil</div>
+  <div class="difficulty-btn" onclick="startQuiz('medio')">Medio</div>
+  <div class="difficulty-btn" onclick="startQuiz('dificil')">Difícil</div>
+</div>
+
+<div class="question-box" id="question-box" style="display:none;"></div>
+<div id="options"></div>
+<div class="result" id="result"></div>
+<button class="btn" id="next-btn" onclick="nextQuestion()" style="display:none;">Siguiente</button>
+<br>
+<a href="index.html" class="btn">⬅ Volver al Menú</a>
+
+<script>
+// Preguntas por dificultad (10 por dificultad)
+const quizQuestions = {
+  facil: [
+    {q:"5 + 3 = ?", options:["6","7","8","9"], answer:"8"},
+    {q:"10 - 4 = ?", options:["5","6","7","8"], answer:"6"},
+    {q:"2 × 3 = ?", options:["5","6","7","8"], answer:"6"},
+    {q:"9 ÷ 3 = ?", options:["2","3","4","5"], answer:"3"},
+    {q:"¿Número mayor: 12 o 9?", options:["12","9"], answer:"12"},
+    {q:"7 + 2 = ?", options:["8","9","10","11"], answer:"9"},
+    {q:"6 - 1 = ?", options:["4","5","6","7"], answer:"5"},
+    {q:"3 × 2 = ?", options:["5","6","7","8"], answer:"6"},
+    {q:"8 ÷ 4 = ?", options:["1","2","3","4"], answer:"2"},
+    {q:"¿Número menor: 5 o 7?", options:["5","7"], answer:"5"}
+  ],
+  medio: [
+    {q:"12 × 3 = ?", options:["36","34","32","30"], answer:"36"},
+    {q:"45 ÷ 5 = ?", options:["8","9","10","11"], answer:"9"},
+    {q:"15 + 27 = ?", options:["42","41","43","44"], answer:"42"},
+    {q:"50 - 23 = ?", options:["27","28","29","26"], answer:"27"},
+    {q:"5² = ?", options:["10","20","25","30"], answer:"25"},
+    {q:"√49 = ?", options:["6","7","8","9"], answer:"7"},
+    {q:"8 × 7 = ?", options:["54","55","56","57"], answer:"56"},
+    {q:"100 ÷ 4 = ?", options:["20","25","30","35"], answer:"25"},
+    {q:"18 + 24 = ?", options:["41","42","43","44"], answer:"42"},
+    {q:"27 - 9 = ?", options:["16","17","18","19"], answer:"18"}
+  ],
+  dificil: [
+    {q:"(5 × 3) + 12 ÷ 4 = ?", options:["16","17","18","19"], answer:"18"},
+    {q:"√144 + 7 = ?", options:["18","19","20","21"], answer:"19"},
+    {q:"25% de 200 = ?", options:["40","45","50","55"], answer:"50"},
+    {q:"12 × (3 + 2) = ?", options:["50","55","60","65"], answer:"60"},
+    {q:"(18 ÷ 3) × 4 = ?", options:["20","22","24","26"], answer:"24"},
+    {q:"5³ = ?", options:["125","120","130","135"], answer:"125"},
+    {q:"√225 = ?", options:["14","15","16","17"], answer:"15"},
+    {q:"60 ÷ (2 × 5) = ?", options:["5","6","7","8"], answer:"6"},
+    {q:"45% de 200 = ?", options:["80","85","90","95"], answer:"90"},
+    {q:"(8 + 12) × 2 = ?", options:["38","40","42","44"], answer:"40"}
+  ]
+};
+
+let questions = [];
+let currentQuestion = 0;
+let score = 0;
+
+function startQuiz(difficulty){
+  questions = quizQuestions[difficulty];
+  currentQuestion = 0;
+  score = 0;
+  document.getElementById("difficulty-section").style.display="none";
+  document.getElementById("question-box").style.display="block";
+  showQuestion();
+}
+
+function showQuestion(){
+  const box=document.getElementById("question-box");
+  const opts=document.getElementById("options");
+  const result=document.getElementById("result");
+  const nextBtn=document.getElementById("next-btn");
+
+  if(currentQuestion>=questions.length){
+    box.innerHTML=`<strong>¡Has terminado el quiz!</strong><br>Puntaje final: ${score}/${questions.length}`;
+    opts.innerHTML="";
+    nextBtn.style.display="none";
+    return;
+  }
+
+  const q=questions[currentQuestion];
+  box.textContent=q.q;
+  opts.innerHTML="";
+  result.textContent="";
+  nextBtn.style.display="none";
+
+  q.options.forEach(opt=>{
+    const div=document.createElement("div");
+    div.classList.add("option");
+    div.textContent=opt;
+    div.onclick=()=>checkAnswer(opt,q.answer);
+    opts.appendChild(div);
+  });
+}
+
+function checkAnswer(selected, correct){
+  const result=document.getElementById("result");
+  if(selected===correct){
+    result.textContent="✅ Correcto!";
+    score++;
+  } else {
+    result.textContent=`❌ Incorrecto. Respuesta: ${correct}`;
+  }
+  document.querySelectorAll(".option").forEach(o=>o.onclick=null);
+  document.getElementById("next-btn").style.display="inline-block";
+}
+
+function nextQuestion(){
+  currentQuestion++;
+  showQuestion();
+}
+</script>
+
+</body>
+</html>
+

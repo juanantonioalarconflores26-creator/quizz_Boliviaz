@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz de Filosofía</title>
+<style>
+  body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #c8e6c9, #81c784);
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    color: #333;
+  }
+  header {
+    background-color: #4caf50;
+    color: white;
+    width: 100%;
+    text-align: center;
+    padding: 15px 0;
+    font-size: 28px;
+    font-weight: bold;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  }
+  .difficulty, .quiz {
+    text-align: center;
+    margin-top: 50px;
+  }
+  .btn {
+    background-color: #4caf50;
+    border: none;
+    color: white;
+    padding: 15px 30px;
+    margin: 15px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 20px;
+    transition: 0.3s;
+  }
+  .btn:hover { background-color: #388e3c; transform: scale(1.05); }
+  .option {
+    display: block;
+    background-color: #f0f0f0;
+    margin: 12px auto;
+    padding: 15px;
+    width: 60%;
+    max-width: 400px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 18px;
+    transition: 0.3s;
+  }
+  .option:hover { background-color: #dfe6e9; }
+  .result {
+    font-size: 22px;
+    margin-top: 20px;
+  }
+</style>
+</head>
+<body>
+
+<header>🤔 Quiz de Filosofía</header>
+
+<div class="difficulty" id="difficulty">
+  <h2>Selecciona la dificultad</h2>
+  <button class="btn" onclick="selectDifficulty('Fácil')">Fácil</button>
+  <button class="btn" onclick="selectDifficulty('Medio')">Medio</button>
+  <button class="btn" onclick="selectDifficulty('Difícil')">Difícil</button>
+  <br><button class="btn" style="background-color:#9c27b0" onclick="goBack()">⬅ Volver</button>
+</div>
+
+<div class="quiz" id="quiz" style="display:none;">
+  <h2 id="subject-title"></h2>
+  <div id="question-box" style="margin-top:30px; font-size:20px;"></div>
+  <div id="options"></div>
+  <div class="result" id="result"></div>
+  <button class="btn" id="next-btn" onclick="nextQuestion()" style="display:none;">Siguiente</button>
+</div>
+
+<script>
+let selectedDifficulty = "";
+let currentQuestion = 0;
+let score = 0;
+
+const questions = {
+  "Fácil":[
+    {q:"¿Quién es conocido como el 'Padre de la Filosofía'?", options:["Sócrates","Platón","Aristóteles","Descartes"], answer:"Sócrates"},
+    {q:"¿Qué estudia la filosofía?", options:["La existencia y el conocimiento","Matemáticas","Historia","Geografía"], answer:"La existencia y el conocimiento"},
+    {q:"¿Qué significa 'filosofía'?", options:["Amor por la sabiduría","Amor por la música","Amor por el arte","Amor por el dinero"], answer:"Amor por la sabiduría"},
+    {q:"¿Quién escribió 'La República'?", options:["Platón","Sócrates","Aristóteles","Kant"], answer:"Platón"},
+    {q:"¿Qué es la ética?", options:["Estudio de la moral","Estudio de la tierra","Estudio del universo","Estudio del arte"], answer:"Estudio de la moral"},
+    {q:"¿Quién fue alumno de Sócrates?", options:["Platón","Aristóteles","Epicuro","Descartes"], answer:"Platón"},
+    {q:"¿Qué es la lógica?", options:["Estudio del razonamiento correcto","Estudio del cuerpo humano","Estudio de la historia","Estudio de la música"], answer:"Estudio del razonamiento correcto"},
+    {q:"¿Qué corriente filosófica fundó Aristóteles?", options:["Lógica y metafísica","Estoicismo","Epicureísmo","Cínica"], answer:"Lógica y metafísica"},
+    {q:"¿Qué es el empirismo?", options:["Conocimiento a través de la experiencia","Conocimiento a través de sueños","Conocimiento a través de libros","Conocimiento a través de fe"], answer:"Conocimiento a través de la experiencia"},
+    {q:"¿Qué es el racionalismo?", options:["Conocimiento a través de la razón","Conocimiento a través de la fe","Conocimiento a través del azar","Conocimiento a través de emociones"], answer:"Conocimiento a través de la razón"}
+  ],
+  "Medio":[
+    {q:"¿Qué filósofo dijo 'Pienso, luego existo'?", options:["Descartes","Kant","Nietzsche","Hume"], answer:"Descartes"},
+    {q:"¿Qué es la metafísica?", options:["Estudio de la realidad y el ser","Estudio del cuerpo","Estudio de la sociedad","Estudio de la política"], answer:"Estudio de la realidad y el ser"},
+    {q:"¿Quién escribió 'Crítica de la razón pura'?", options:["Kant","Hegel","Platon","Aristóteles"], answer:"Kant"},
+    {q:"¿Qué es el estoicismo?", options:["Control de emociones y virtud","Búsqueda de placer","Desprecio por la sociedad","Estudio del arte"], answer:"Control de emociones y virtud"},
+    {q:"¿Quién es el padre del existencialismo?", options:["Søren Kierkegaard","Nietzsche","Hume","Epicuro"], answer:"Søren Kierkegaard"},
+    {q:"¿Qué estudia la epistemología?", options:["El conocimiento","El cuerpo humano","El universo","Las emociones"], answer:"El conocimiento"},
+    {q:"¿Qué significa 'dialéctica' en filosofía?", options:["Discusión para llegar a la verdad","Danza","Meditación","Oración"], answer:"Discusión para llegar a la verdad"},
+    {q:"¿Qué corriente defiende que el placer es el bien supremo?", options:["Epicureísmo","Estoicismo","Racionalismo","Existencialismo"], answer:"Epicureísmo"},
+    {q:"¿Qué filósofo dijo 'Dios ha muerto'?", options:["Nietzsche","Kant","Aristóteles","Platón"], answer:"Nietzsche"},
+    {q:"¿Quién fue maestro de Alejandro Magno?", options:["Aristóteles","Platón","Sócrates","Epicuro"], answer:"Aristóteles"}
+  ],
+  "Difícil":[
+    {q:"¿Qué es la ontología?", options:["Estudio del ser","Estudio del arte","Estudio de la ética","Estudio de la política"], answer:"Estudio del ser"},
+    {q:"¿Qué filósofo fundó el materialismo histórico?", options:["Karl Marx","Hegel","Kant","Socrates"], answer:"Karl Marx"},
+    {q:"¿Qué significa la 'voluntad de poder' en Nietzsche?", options:["Deseo de superación y dominio","Deseo de riqueza","Deseo de amor","Deseo de paz"], answer:"Deseo de superación y dominio"},
+    {q:"¿Quién escribió 'El Ser y la Nada'?", options:["Jean-Paul Sartre","Kant","Aristóteles","Hume"], answer:"Jean-Paul Sartre"},
+    {q:"¿Qué es el imperativo categórico?", options:["Ley moral universal de Kant","Ley física","Ley social","Ley económica"], answer:"Ley moral universal de Kant"},
+    {q:"¿Qué es el pragmatismo?", options:["Valor del conocimiento según su utilidad","Valor del arte","Valor del dinero","Valor de la fama"], answer:"Valor del conocimiento según su utilidad"},
+    {q:"¿Qué corriente afirma que la realidad es una construcción social?", options:["Constructivismo","Racionalismo","Estoicismo","Epicureísmo"], answer:"Constructivismo"},
+    {q:"¿Qué filósofo escribió 'Más allá del bien y del mal'?", options:["Nietzsche","Hume","Kant","Sartre"], answer:"Nietzsche"},
+    {q:"¿Qué estudia la ética de la virtud?", options:["Desarrollo del carácter y la moral","Política","Arte","Lengua"], answer:"Desarrollo del carácter y la moral"},
+    {q:"¿Quién fue el fundador de la fenomenología?", options:["Edmund Husserl","Heidegger","Sartre","Kant"], answer:"Edmund Husserl"}
+  ]
+};
+
+function goBack(){ window.location.href="index.html"; }
+
+function selectDifficulty(level){
+  selectedDifficulty=level;
+  document.getElementById("difficulty").style.display="none";
+  document.getElementById("quiz").style.display="block";
+  startQuiz();
+}
+
+function startQuiz(){
+  currentQuestion=0;
+  score=0;
+  document.getElementById("subject-title").textContent=`Filosofía (${selectedDifficulty})`;
+  showQuestion();
+}
+
+function showQuestion(){
+  const qList=questions[selectedDifficulty];
+  const box=document.getElementById("question-box");
+  const opts=document.getElementById("options");
+  const result=document.getElementById("result");
+  const nextBtn=document.getElementById("next-btn");
+
+  if(!qList || currentQuestion>=qList.length){
+    box.innerHTML=`<strong>¡Has terminado el quiz!</strong><br>Puntaje final: ${score}/${qList.length}`;
+    opts.innerHTML="";
+    nextBtn.style.display="none";
+    return;
+  }
+
+  const q=qList[currentQuestion];
+  box.textContent=q.q;
+  opts.innerHTML="";
+  result.textContent="";
+  nextBtn.style.display="none";
+
+  q.options.forEach(opt=>{
+    const div=document.createElement("div");
+    div.classList.add("option");
+    div.textContent=opt;
+    div.onclick=()=>checkAnswer(opt,q.answer);
+    opts.appendChild(div);
+  });
+}
+
+function checkAnswer(selected,correct){
+  const result=document.getElementById("result");
+  if(selected===correct){ result.textContent="✅ Correcto!"; score++; }
+  else{ result.textContent=`❌ Incorrecto. Respuesta: ${correct}`; }
+  document.querySelectorAll(".option").forEach(o=>o.onclick=null);
+  document.getElementById("next-btn").style.display="inline-block";
+}
+
+function nextQuestion(){
+  currentQuestion++;
+  showQuestion();
+}
+</script>
+</body>
+</html>

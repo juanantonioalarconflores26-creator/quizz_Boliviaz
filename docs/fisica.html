@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz de Física</title>
+<style>
+  body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #89f7fe, #66a6ff);
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    color: #333;
+    text-align: center;
+  }
+  header {
+    background-color: #2196F3;
+    color: white;
+    width: 100%;
+    padding: 15px 0;
+    font-size: 28px;
+    font-weight: bold;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  }
+  .question-box, .option, .result, .btn, .difficulty-btn { margin: 15px; }
+  .question-box {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    width: 80%;
+    max-width: 500px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+  }
+  .option, .difficulty-btn {
+    background-color: #f0f0f0;
+    margin: 8px 0;
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+  .option:hover, .difficulty-btn:hover { background-color: #dfe6e9; }
+  .btn {
+    background-color: #4CAF50;
+    border: none;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 18px;
+    text-decoration: none;
+  }
+  .btn:hover { background-color: #45a049; }
+</style>
+</head>
+<body>
+
+<header>Física 🚗</header>
+
+<div id="difficulty-section" class="question-box">
+  <h3>Selecciona la dificultad:</h3>
+  <div class="difficulty-btn" onclick="startQuiz('facil')">Fácil</div>
+  <div class="difficulty-btn" onclick="startQuiz('medio')">Medio</div>
+  <div class="difficulty-btn" onclick="startQuiz('dificil')">Difícil</div>
+</div>
+
+<div class="question-box" id="question-box" style="display:none;"></div>
+<div id="options"></div>
+<div class="result" id="result"></div>
+<button class="btn" id="next-btn" onclick="nextQuestion()" style="display:none;">Siguiente</button>
+<br>
+<a href="index.html" class="btn">⬅ Volver al Menú</a>
+
+<script>
+// Preguntas de Física por dificultad
+const quizQuestions = {
+  facil: [
+    {q:"La gravedad de la Tierra hace que los objetos caigan hacia:", options:["El cielo","El suelo","Los lados","El agua"], answer:"El suelo"},
+    {q:"Unidad de fuerza en el SI:", options:["Newton","Joule","Pascal","Watt"], answer:"Newton"},
+    {q:"El agua hierve a 100° en escala:", options:["Kelvin","Celsius","Fahrenheit","Rankine"], answer:"Celsius"},
+    {q:"El movimiento de un objeto se mide en:", options:["Metros","Segundos","Kilogramos","Newton"], answer:"Metros"},
+    {q:"El Sol es una fuente de:", options:["Gravedad","Luz y energía","Magnetismo","Sonido"], answer:"Luz y energía"},
+    {q:"La velocidad se mide en:", options:["m/s","kg","N","J"], answer:"m/s"},
+    {q:"Un coche que no cambia de velocidad tiene:", options:["Aceleración","Velocidad constante","Fuerza","Energía"], answer:"Velocidad constante"},
+    {q:"El aire es un ejemplo de:", options:["Líquido","Gas","Sólido","Plasma"], answer:"Gas"},
+    {q:"El sonido se propaga en:", options:["Vacío","Aire","Nada","Hielo"], answer:"Aire"},
+    {q:"La masa de un objeto se mide en:", options:["kg","m","s","N"], answer:"kg"}
+  ],
+  medio: [
+    {q:"Fórmula de la velocidad:", options:["v=d/t","v=F×m","v=m×a","v=E/P"], answer:"v=d/t"},
+    {q:"Ley de Newton que dice: Fuerza = masa × aceleración", options:["Primera","Segunda","Tercera","Cuarta"], answer:"Segunda"},
+    {q:"Energía cinética = ?", options:["1/2 m v²","m g h","F d","m a"], answer:"1/2 m v²"},
+    {q:"Si un objeto tiene aceleración, su velocidad:", options:["No cambia","Cambia","Es cero","Es constante"], answer:"Cambia"},
+    {q:"La densidad = ?", options:["masa/volumen","volumen/masa","fuerza/masa","masa×volumen"], answer:"masa/volumen"},
+    {q:"La presión se mide en:", options:["Pa","N","J","W"], answer:"Pa"},
+    {q:"La luz viaja más rápido en:", options:["Agua","Aire","Vidrio","Vacío"], answer:"Vacío"},
+    {q:"Fuerza de rozamiento se opone a:", options:["Velocidad","Fuerza","Movimiento","Aceleración"], answer:"Movimiento"},
+    {q:"Potencia = ?", options:["Trabajo/tiempo","Fuerza×distancia","masa×gravedad","masa/volumen"], answer:"Trabajo/tiempo"},
+    {q:"El calor se mide en:", options:["Joule","Newton","Watt","Metro"], answer:"Joule"}
+  ],
+  dificil: [
+    {q:"Ecuación de movimiento rectilíneo uniformemente acelerado:", options:["v=v0+at","F=ma","E=mc²","p=mv"], answer:"v=v0+at"},
+    {q:"Trabajo = ?", options:["F×d×cosθ","m×v²","P×t","m×g×h"], answer:"F×d×cosθ"},
+    {q:"Ley de conservación de energía dice:", options:["La energía se crea","La energía se destruye","La energía se conserva","La energía desaparece"], answer:"La energía se conserva"},
+    {q:"Velocidad angular se mide en:", options:["rad/s","m/s","kg","N"], answer:"rad/s"},
+    {q:"Frecuencia de onda se mide en:", options:["Hz","m","s","J"], answer:"Hz"},
+    {q:"Impulso = Fuerza ×", options:["Distancia","Tiempo","Masa","Velocidad"], answer:"Tiempo"},
+    {q:"Momento lineal p = ?", options:["m×v","F×d","E×t","a×t"], answer:"m×v"},
+    {q:"Energía potencial gravitatoria = ?", options:["m g h","1/2 m v²","F d","p v"], answer:"m g h"},
+    {q:"Ley de Ohm: V = ?", options:["I × R","R/I","I+R","V×I"], answer:"I × R"},
+    {q:"Aceleración centrípeta a = ?", options:["v²/r","v×r","r/v²","v+r"], answer:"v²/r"}
+  ]
+};
+
+let questions = [];
+let currentQuestion = 0;
+let score = 0;
+
+function startQuiz(difficulty){
+  questions = quizQuestions[difficulty];
+  currentQuestion = 0;
+  score = 0;
+  document.getElementById("difficulty-section").style.display="none";
+  document.getElementById("question-box").style.display="block";
+  showQuestion();
+}
+
+function showQuestion(){
+  const box=document.getElementById("question-box");
+  const opts=document.getElementById("options");
+  const result=document.getElementById("result");
+  const nextBtn=document.getElementById("next-btn");
+
+  if(currentQuestion>=questions.length){
+    box.innerHTML=`<strong>¡Has terminado el quiz!</strong><br>Puntaje final: ${score}/${questions.length}`;
+    opts.innerHTML="";
+    nextBtn.style.display="none";
+    return;
+  }
+
+  const q=questions[currentQuestion];
+  box.textContent=q.q;
+  opts.innerHTML="";
+  result.textContent="";
+  nextBtn.style.display="none";
+
+  q.options.forEach(opt=>{
+    const div=document.createElement("div");
+    div.classList.add("option");
+    div.textContent=opt;
+    div.onclick=()=>checkAnswer(opt,q.answer);
+    opts.appendChild(div);
+  });
+}
+
+function checkAnswer(selected, correct){
+  const result=document.getElementById("result");
+  if(selected===correct){
+    result.textContent="✅ Correcto!";
+    score++;
+  } else {
+    result.textContent=`❌ Incorrecto. Respuesta: ${correct}`;
+  }
+  document.querySelectorAll(".option").forEach(o=>o.onclick=null);
+  document.getElementById("next-btn").style.display="inline-block";
+}
+
+function nextQuestion(){
+  currentQuestion++;
+  showQuestion();
+}
+</script>
+
+</body>
+</html>

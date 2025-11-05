@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz de Sistemas</title>
+<style>
+  body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #d0e6ff, #a0d8ff);
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    color: #333;
+  }
+  header {
+    background-color: #2196f3;
+    color: white;
+    width: 100%;
+    text-align: center;
+    padding: 15px 0;
+    font-size: 28px;
+    font-weight: bold;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  }
+  .difficulty, .quiz {
+    text-align: center;
+    margin-top: 50px;
+  }
+  .btn {
+    background-color: #2196f3;
+    border: none;
+    color: white;
+    padding: 15px 30px;
+    margin: 15px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 20px;
+    transition: 0.3s;
+  }
+  .btn:hover { background-color: #1976d2; transform: scale(1.05); }
+  .option {
+    display: block;
+    background-color: #f0f0f0;
+    margin: 12px auto;
+    padding: 15px;
+    width: 60%;
+    max-width: 400px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 18px;
+    transition: 0.3s;
+  }
+  .option:hover { background-color: #dfe6e9; }
+  .result {
+    font-size: 22px;
+    margin-top: 20px;
+  }
+</style>
+</head>
+<body>
+
+<header>💻 Quiz de Sistemas</header>
+
+<div class="difficulty" id="difficulty">
+  <h2>Selecciona la dificultad</h2>
+  <button class="btn" onclick="selectDifficulty('Fácil')">Fácil</button>
+  <button class="btn" onclick="selectDifficulty('Medio')">Medio</button>
+  <button class="btn" onclick="selectDifficulty('Difícil')">Difícil</button>
+  <br><button class="btn" style="background-color:#9c27b0" onclick="goBack()">⬅ Volver</button>
+</div>
+
+<div class="quiz" id="quiz" style="display:none;">
+  <h2 id="subject-title"></h2>
+  <div id="question-box" style="margin-top:30px; font-size:20px;"></div>
+  <div id="options"></div>
+  <div class="result" id="result"></div>
+  <button class="btn" id="next-btn" onclick="nextQuestion()" style="display:none;">Siguiente</button>
+</div>
+
+<script>
+let selectedDifficulty = "";
+let currentQuestion = 0;
+let score = 0;
+
+const questions = {
+  "Fácil":[
+    {q:"¿Qué es un sistema operativo?",options:["Software que gestiona hardware","Un programa de dibujo","Un tipo de virus","Una página web"],answer:"Software que gestiona hardware"},
+    {q:"Dispositivo de entrada:",options:["Teclado","Monitor","Impresora","Altavoz"],answer:"Teclado"},
+    {q:"Dispositivo de salida:",options:["Monitor","Ratón","Teclado","Micrófono"],answer:"Monitor"},
+    {q:"Memoria principal:",options:["RAM","HDD","USB","CD"],answer:"RAM"},
+    {q:"Ejemplo de sistema operativo:",options:["Windows","Word","Chrome","Photoshop"],answer:"Windows"},
+    {q:"Unidad de almacenamiento primaria:",options:["Disco duro","Teclado","Monitor","Impresora"],answer:"Disco duro"},
+    {q:"Red de computadoras:",options:["LAN","CPU","RAM","ROM"],answer:"LAN"},
+    {q:"Lenguaje de programación más básico:",options:["Código máquina","Python","Java","HTML"],answer:"Código máquina"},
+    {q:"Programa antivirus:",options:["Protege la computadora","Edita fotos","Navega en internet","Reproduce música"],answer:"Protege la computadora"},
+    {q:"Componente principal de la computadora:",options:["CPU","Mouse","Monitor","Teclado"],answer:"CPU"}
+  ],
+  "Medio":[
+    {q:"¿Qué es un algoritmo?",options:["Conjunto de instrucciones","Hardware","Virus","Sistema operativo"],answer:"Conjunto de instrucciones"},
+    {q:"Firmware:",options:["Software integrado al hardware","Virus","Aplicación móvil","Red social"],answer:"Software integrado al hardware"},
+    {q:"Dispositivo que almacena datos temporalmente:",options:["RAM","ROM","Disco duro","CD"],answer:"RAM"},
+    {q:"Dispositivo que almacena datos permanentemente:",options:["ROM","RAM","CPU","GPU"],answer:"ROM"},
+    {q:"Modelo de red en capas:",options:["OSI","HTML","Windows","Linux"],answer:"OSI"},
+    {q:"Protocolo de internet:",options:["TCP/IP","USB","HTTP","FTP"],answer:"TCP/IP"},
+    {q:"Lenguaje de programación orientado a objetos:",options:["Java","HTML","SQL","CSS"],answer:"Java"},
+    {q:"IP pública se asigna por:",options:["Proveedor de internet","Usuario","Sistema operativo","Software"],answer:"Proveedor de internet"},
+    {q:"Memoria volátil:",options:["RAM","ROM","Disco duro","USB"],answer:"RAM"},
+    {q:"Sistema de archivos más usado en Windows:",options:["NTFS","FAT32","EXT4","HFS+"],answer:"NTFS"}
+  ],
+  "Difícil":[
+    {q:"Dirección MAC identifica:",options:["Dispositivo en red","Usuario","Software","Sistema operativo"],answer:"Dispositivo en red"},
+    {q:"Lenguaje de bajo nivel:",options:["Ensamblador","Python","Java","HTML"],answer:"Ensamblador"},
+    {q:"Virtualización se refiere a:",options:["Crear máquinas virtuales","Crear virus","Diseñar apps","Editar fotos"],answer:"Crear máquinas virtuales"},
+    {q:"Modelo cliente-servidor:",options:["Clientes acceden a servidores","Servidores acceden a clientes","Red P2P","Virus de red"],answer:"Clientes acceden a servidores"},
+    {q:"IP privada se usa en:",options:["Red interna","Internet","USB","Hardware"],answer:"Red interna"},
+    {q:"DNS:",options:["Convierte nombres de dominio en IP","Almacena datos","Protege virus","Edita fotos"],answer:"Convierte nombres de dominio en IP"},
+    {q:"Lenguaje de consulta de bases de datos:",options:["SQL","HTML","CSS","Python"],answer:"SQL"},
+    {q:"Firewall sirve para:",options:["Proteger la red","Editar fotos","Navegar","Programar"],answer:"Proteger la red"},
+    {q:"Protocolo seguro para web:",options:["HTTPS","HTTP","FTP","SMTP"],answer:"HTTPS"},
+    {q:"Unidad central de procesamiento:",options:["CPU","GPU","RAM","ROM"],answer:"CPU"}
+  ]
+};
+
+function goBack(){ window.location.href="index.html"; }
+
+function selectDifficulty(level){
+  selectedDifficulty=level;
+  document.getElementById("difficulty").style.display="none";
+  document.getElementById("quiz").style.display="block";
+  startQuiz();
+}
+
+function startQuiz(){
+  currentQuestion=0;
+  score=0;
+  document.getElementById("subject-title").textContent=`Sistemas (${selectedDifficulty})`;
+  showQuestion();
+}
+
+function showQuestion(){
+  const qList=questions[selectedDifficulty];
+  const box=document.getElementById("question-box");
+  const opts=document.getElementById("options");
+  const result=document.getElementById("result");
+  const nextBtn=document.getElementById("next-btn");
+
+  if(!qList || currentQuestion>=qList.length){
+    box.innerHTML=`<strong>¡Has terminado el quiz!</strong><br>Puntaje final: ${score}/${qList.length}`;
+    opts.innerHTML="";
+    nextBtn.style.display="none";
+    return;
+  }
+
+  const q=qList[currentQuestion];
+  box.textContent=q.q;
+  opts.innerHTML="";
+  result.textContent="";
+  nextBtn.style.display="none";
+
+  q.options.forEach(opt=>{
+    const div=document.createElement("div");
+    div.classList.add("option");
+    div.textContent=opt;
+    div.onclick=()=>checkAnswer(opt,q.answer);
+    opts.appendChild(div);
+  });
+}
+
+function checkAnswer(selected,correct){
+  const result=document.getElementById("result");
+  if(selected===correct){ result.textContent="✅ Correcto!"; score++; }
+  else{ result.textContent=`❌ Incorrecto. Respuesta: ${correct}`; }
+  document.querySelectorAll(".option").forEach(o=>o.onclick=null);
+  document.getElementById("next-btn").style.display="inline-block";
+}
+
+function nextQuestion(){
+  currentQuestion++;
+  showQuestion();
+}
+</script>
+</body>
+</html>

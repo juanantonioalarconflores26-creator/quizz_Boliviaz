@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz de Química</title>
+<style>
+  body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #ffecd2, #fcb69f);
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    color: #333;
+  }
+  header {
+    background-color: #ff5722;
+    color: white;
+    width: 100%;
+    text-align: center;
+    padding: 15px 0;
+    font-size: 28px;
+    font-weight: bold;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  }
+  .difficulty, .quiz {
+    text-align: center;
+    margin-top: 50px;
+  }
+  .btn {
+    background-color: #ff5722;
+    border: none;
+    color: white;
+    padding: 15px 30px;
+    margin: 15px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 20px;
+    transition: 0.3s;
+  }
+  .btn:hover { background-color: #e64a19; transform: scale(1.05); }
+  .option {
+    display: block;
+    background-color: #f0f0f0;
+    margin: 12px auto;
+    padding: 15px;
+    width: 60%;
+    max-width: 400px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 18px;
+    transition: 0.3s;
+  }
+  .option:hover { background-color: #dfe6e9; }
+  .result {
+    font-size: 22px;
+    margin-top: 20px;
+  }
+</style>
+</head>
+<body>
+
+<header>🧪 Quiz de Química</header>
+
+<div class="difficulty" id="difficulty">
+  <h2>Selecciona la dificultad</h2>
+  <button class="btn" onclick="selectDifficulty('Fácil')">Fácil</button>
+  <button class="btn" onclick="selectDifficulty('Medio')">Medio</button>
+  <button class="btn" onclick="selectDifficulty('Difícil')">Difícil</button>
+  <br><button class="btn" style="background-color:#9c27b0" onclick="goBack()">⬅ Volver</button>
+</div>
+
+<div class="quiz" id="quiz" style="display:none;">
+  <h2 id="subject-title"></h2>
+  <div id="question-box" style="margin-top:30px; font-size:20px;"></div>
+  <div id="options"></div>
+  <div class="result" id="result"></div>
+  <button class="btn" id="next-btn" onclick="nextQuestion()" style="display:none;">Siguiente</button>
+</div>
+
+<script>
+let selectedDifficulty = "";
+let currentQuestion = 0;
+let score = 0;
+
+const questions = {
+  "Fácil":[
+    {q:"Símbolo del hidrógeno:",options:["H","He","O","C"],answer:"H"},
+    {q:"Agua en fórmula química:",options:["H2O","CO2","O2","NaCl"],answer:"H2O"},
+    {q:"Elemento metálico:",options:["Hierro","Oxígeno","Carbono","Helio"],answer:"Hierro"},
+    {q:"Sustancia formada por dos o más elementos:",options:["Compuesto","Mezcla","Molécula","Ion"],answer:"Compuesto"},
+    {q:"Gas que respiramos:",options:["Oxígeno","Nitrógeno","Hidrógeno","Dióxido de carbono"],answer:"Oxígeno"},
+    {q:"Símbolo del carbono:",options:["C","Ca","Cl","Co"],answer:"C"},
+    {q:"Sustancia que cambia color con indicador:",options:["Ácido","Sal","Agua","Gas"],answer:"Ácido"},
+    {q:"Molécula más simple del agua:",options:["H2O","H2O2","CO2","O2"],answer:"H2O"},
+    {q:"Elemento de número atómico 1:",options:["H","He","Li","Be"],answer:"H"},
+    {q:"Estado de la materia de un gas:",options:["Gaseoso","Líquido","Sólido","Plasma"],answer:"Gaseoso"}
+  ],
+  "Medio":[
+    {q:"Símbolo del sodio:",options:["Na","S","Si","Sn"],answer:"Na"},
+    {q:"Electrón:",options:["Partícula negativa","Partícula positiva","Neutrón","Protón"],answer:"Partícula negativa"},
+    {q:"pH neutro:",options:["7","0","14","1"],answer:"7"},
+    {q:"Elemento presente en la sal común:",options:["Cl","H","O","N"],answer:"Cl"},
+    {q:"Molécula de dióxido de carbono:",options:["CO2","CO","C2O","O2"],answer:"CO2"},
+    {q:"Reacción que libera energía:",options:["Exotérmica","Endotérmica","Equilibrada","Catálisis"],answer:"Exotérmica"},
+    {q:"Unidad de masa atómica:",options:["uma","mol","litro","gramo"],answer:"uma"},
+    {q:"Elemento más abundante en la Tierra:",options:["Oxígeno","Hidrógeno","Carbono","Hierro"],answer:"Oxígeno"},
+    {q:"Reacción de neutralización produce:",options:["Sal y agua","Ácido","Base","Gas"],answer:"Sal y agua"},
+    {q:"Símbolo del potasio:",options:["K","P","Pt","Po"],answer:"K"}
+  ],
+  "Difícil":[
+    {q:"Número de protones en el helio:",options:["2","1","3","4"],answer:"2"},
+    {q:"Electronegatividad más alta:",options:["Flúor","Oxígeno","Carbono","Hidrógeno"],answer:"Flúor"},
+    {q:"Reacción redox involucra:",options:["Oxidación y reducción","Solo oxidación","Solo reducción","Neutralización"],answer:"Oxidación y reducción"},
+    {q:"Molécula polar:",options:["H2O","O2","N2","CH4"],answer:"H2O"},
+    {q:"Ley que relaciona presión y volumen de un gas:",options:["Boyle","Charles","Avogadro","Ideal"],answer:"Boyle"},
+    {q:"Número de Avogadro:",options:["6.022×10^23","3.14","9.8","1.602×10^-19"],answer:"6.022×10^23"},
+    {q:"Elemento más electronegativo:",options:["F","O","Cl","N"],answer:"F"},
+    {q:"Mol de sustancia contiene:",options:["6.022×10^23 partículas","1 gramo","1 litro","1 molécula"],answer:"6.022×10^23 partículas"},
+    {q:"Reacción que absorbe calor:",options:["Endotérmica","Exotérmica","Redox","Desplazamiento"],answer:"Endotérmica"},
+    {q:"Enlace iónico se forma entre:",options:["Metal y no metal","Dos metales","Dos no metales","Gas y sólido"],answer:"Metal y no metal"}
+  ]
+};
+
+function goBack(){ window.location.href="index.html"; }
+
+function selectDifficulty(level){
+  selectedDifficulty=level;
+  document.getElementById("difficulty").style.display="none";
+  document.getElementById("quiz").style.display="block";
+  startQuiz();
+}
+
+function startQuiz(){
+  currentQuestion=0;
+  score=0;
+  document.getElementById("subject-title").textContent=`Química (${selectedDifficulty})`;
+  showQuestion();
+}
+
+function showQuestion(){
+  const qList=questions[selectedDifficulty];
+  const box=document.getElementById("question-box");
+  const opts=document.getElementById("options");
+  const result=document.getElementById("result");
+  const nextBtn=document.getElementById("next-btn");
+
+  if(!qList || currentQuestion>=qList.length){
+    box.innerHTML=`<strong>¡Has terminado el quiz!</strong><br>Puntaje final: ${score}/${qList.length}`;
+    opts.innerHTML="";
+    nextBtn.style.display="none";
+    return;
+  }
+
+  const q=qList[currentQuestion];
+  box.textContent=q.q;
+  opts.innerHTML="";
+  result.textContent="";
+  nextBtn.style.display="none";
+
+  q.options.forEach(opt=>{
+    const div=document.createElement("div");
+    div.classList.add("option");
+    div.textContent=opt;
+    div.onclick=()=>checkAnswer(opt,q.answer);
+    opts.appendChild(div);
+  });
+}
+
+function checkAnswer(selected,correct){
+  const result=document.getElementById("result");
+  if(selected===correct){ result.textContent="✅ Correcto!"; score++; }
+  else{ result.textContent=`❌ Incorrecto. Respuesta: ${correct}`; }
+  document.querySelectorAll(".option").forEach(o=>o.onclick=null);
+  document.getElementById("next-btn").style.display="inline-block";
+}
+
+function nextQuestion(){
+  currentQuestion++;
+  showQuestion();
+}
+</script>
+</body>
+</html>

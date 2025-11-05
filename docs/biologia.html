@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz de Biología</title>
+<style>
+  body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #a8e6cf, #dcedc1);
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    color: #333;
+  }
+  header {
+    background-color: #4CAF50;
+    color: white;
+    width: 100%;
+    text-align: center;
+    padding: 15px 0;
+    font-size: 28px;
+    font-weight: bold;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  }
+  .difficulty, .quiz {
+    text-align: center;
+    margin-top: 50px;
+  }
+  .btn {
+    background-color: #4CAF50;
+    border: none;
+    color: white;
+    padding: 15px 30px;
+    margin: 15px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 20px;
+    transition: 0.3s;
+  }
+  .btn:hover { background-color: #45a049; transform: scale(1.05); }
+  .option {
+    display: block;
+    background-color: #f0f0f0;
+    margin: 12px auto;
+    padding: 15px;
+    width: 60%;
+    max-width: 400px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 18px;
+    transition: 0.3s;
+  }
+  .option:hover { background-color: #dfe6e9; }
+  .result {
+    font-size: 22px;
+    margin-top: 20px;
+  }
+</style>
+</head>
+<body>
+
+<header>🧬 Quiz de Biología</header>
+
+<div class="difficulty" id="difficulty">
+  <h2>Selecciona la dificultad</h2>
+  <button class="btn" onclick="selectDifficulty('Fácil')">Fácil</button>
+  <button class="btn" onclick="selectDifficulty('Medio')">Medio</button>
+  <button class="btn" onclick="selectDifficulty('Difícil')">Difícil</button>
+  <br><button class="btn" style="background-color:#e91e63" onclick="goBack()">⬅ Volver</button>
+</div>
+
+<div class="quiz" id="quiz" style="display:none;">
+  <h2 id="subject-title"></h2>
+  <div id="question-box" style="margin-top:30px; font-size:20px;"></div>
+  <div id="options"></div>
+  <div class="result" id="result"></div>
+  <button class="btn" id="next-btn" onclick="nextQuestion()" style="display:none;">Siguiente</button>
+</div>
+
+<script>
+let selectedDifficulty = "";
+let currentQuestion = 0;
+let score = 0;
+
+const questions = {
+  "Fácil":[
+    {q:"El corazón pertenece al sistema:",options:["Circulatorio","Digestivo","Nervioso","Respiratorio"],answer:"Circulatorio"},
+    {q:"Planta que produce flores:",options:["Angiosperma","Gimnosperma","Musgo","Helecho"],answer:"Angiosperma"},
+    {q:"El oxígeno lo producen:",options:["Plantas","Animales","Bacterias","Hongos"],answer:"Plantas"},
+    {q:"Los humanos tenemos:",options:["4 extremidades","6 extremidades","2 extremidades","8 extremidades"],answer:"4 extremidades"},
+    {q:"Célula básica de los seres vivos:",options:["Célula","Átomo","Molécula","Tejido"],answer:"Célula"},
+    {q:"Órgano donde se produce la digestión química:",options:["Estómago","Pulmón","Hígado","Riñón"],answer:"Estómago"},
+    {q:"Plantas verdes realizan:",options:["Fotosíntesis","Respiración","Excreción","Digestión"],answer:"Fotosíntesis"},
+    {q:"El esqueleto humano está hecho de:",options:["Hueso","Cartílago","Músculo","Piel"],answer:"Hueso"},
+    {q:"Ser vivo que no se mueve:",options:["Planta","Perro","Gato","Ave"],answer:"Planta"},
+    {q:"Los peces respiran por:",options:["Branquias","Pulmones","Piel","Aletas"],answer:"Branquias"}
+  ],
+  "Medio":[
+    {q:"Sistema respiratorio incluye:",options:["Pulmones","Corazón","Hígado","Riñón"],answer:"Pulmones"},
+    {q:"Animales que ponen huevos:",options:["Ovíparos","Vivíparos","Mamíferos","Reptiles"],answer:"Ovíparos"},
+    {q:"Fotosíntesis ocurre en:",options:["Cloroplasto","Mitocondria","Núcleo","Ribosoma"],answer:"Cloroplasto"},
+    {q:"Sangre roja contiene:",options:["Hemoglobina","Agua","Oxígeno","Plasma"],answer:"Hemoglobina"},
+    {q:"Animales que respiran agua:",options:["Peces","Aves","Mamíferos","Reptiles"],answer:"Peces"},
+    {q:"Sistema circulatorio transporta:",options:["Sangre","O2","CO2","Agua"],answer:"Sangre"},
+    {q:"Plantas que no tienen flores:",options:["Gimnospermas","Angiospermas","Musgo","Helecho"],answer:"Gimnospermas"},
+    {q:"Reproducción sexual requiere:",options:["Gametas","Agua","Sol","Tierra"],answer:"Gametas"},
+    {q:"El pH sanguíneo normal:",options:["7.4","6.5","8.0","7.0"],answer:"7.4"},
+    {q:"Hueso más largo del cuerpo humano:",options:["Fémur","Húmero","Tibia","Peroné"],answer:"Fémur"}
+  ],
+  "Difícil":[
+    {q:"ADN significa:",options:["Ácido desoxirribonucleico","Ácido ribonucleico","Proteína","Carbohidrato"],answer:"Ácido desoxirribonucleico"},
+    {q:"Órgano que filtra sangre:",options:["Riñón","Hígado","Pulmón","Corazón"],answer:"Riñón"},
+    {q:"Mitocondria produce:",options:["Energía","Proteínas","Lípidos","Azúcar"],answer:"Energía"},
+    {q:"Clasificación científica: Reino, Filo, ...?",options:["Clase","Familia","Género","Especie"],answer:"Clase"},
+    {q:"Célula procariota no tiene:",options:["Núcleo","Citoplasma","Membrana","Ribosomas"],answer:"Núcleo"},
+    {q:"Hormona que regula azúcar en sangre:",options:["Insulina","Adrenalina","Cortisol","Tiroxina"],answer:"Insulina"},
+    {q:"Tejido que conecta músculo con hueso:",options:["Tendón","Ligamento","Cartílago","Fascia"],answer:"Tendón"},
+    {q:"Órgano digestivo donde se absorbe la mayoría de nutrientes:",options:["Intestino delgado","Estómago","Hígado","Colon"],answer:"Intestino delgado"},
+    {q:"Tipo de célula inmune:",options:["Linfocito","Neuronas","Hepatocitos","Osteocitos"],answer:"Linfocito"},
+    {q:"Molécula que almacena energía química:",options:["ATP","ADN","Glucosa","ARN"],answer:"ATP"}
+  ]
+};
+
+function goBack(){ window.location.href="index.html"; }
+
+function selectDifficulty(level){
+  selectedDifficulty=level;
+  document.getElementById("difficulty").style.display="none";
+  document.getElementById("quiz").style.display="block";
+  startQuiz();
+}
+
+function startQuiz(){
+  currentQuestion=0;
+  score=0;
+  document.getElementById("subject-title").textContent=`Biología (${selectedDifficulty})`;
+  showQuestion();
+}
+
+function showQuestion(){
+  const qList=questions[selectedDifficulty];
+  const box=document.getElementById("question-box");
+  const opts=document.getElementById("options");
+  const result=document.getElementById("result");
+  const nextBtn=document.getElementById("next-btn");
+
+  if(!qList || currentQuestion>=qList.length){
+    box.innerHTML=`<strong>¡Has terminado el quiz!</strong><br>Puntaje final: ${score}/${qList.length}`;
+    opts.innerHTML="";
+    nextBtn.style.display="none";
+    return;
+  }
+
+  const q=qList[currentQuestion];
+  box.textContent=q.q;
+  opts.innerHTML="";
+  result.textContent="";
+  nextBtn.style.display="none";
+
+  q.options.forEach(opt=>{
+    const div=document.createElement("div");
+    div.classList.add("option");
+    div.textContent=opt;
+    div.onclick=()=>checkAnswer(opt,q.answer);
+    opts.appendChild(div);
+  });
+}
+
+function checkAnswer(selected,correct){
+  const result=document.getElementById("result");
+  if(selected===correct){ result.textContent="✅ Correcto!"; score++; }
+  else{ result.textContent=`❌ Incorrecto. Respuesta: ${correct}`; }
+  document.querySelectorAll(".option").forEach(o=>o.onclick=null);
+  document.getElementById("next-btn").style.display="inline-block";
+}
+
+function nextQuestion(){
+  currentQuestion++;
+  showQuestion();
+}
+</script>
+</body>
+</html>
+

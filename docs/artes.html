@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz de Artes Plásticas</title>
+<style>
+  body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #ffecd2, #fcb69f);
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    color: #333;
+    text-align: center;
+  }
+  header {
+    background-color: #FF5722;
+    color: white;
+    width: 100%;
+    padding: 15px 0;
+    font-size: 28px;
+    font-weight: bold;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  }
+  .question-box, .option, .result, .btn, .difficulty-btn { margin: 15px; }
+  .question-box {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    width: 80%;
+    max-width: 500px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+  }
+  .option, .difficulty-btn {
+    background-color: #f0f0f0;
+    margin: 8px 0;
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+  .option:hover, .difficulty-btn:hover { background-color: #dfe6e9; }
+  .btn {
+    background-color: #4CAF50;
+    border: none;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 18px;
+    text-decoration: none;
+  }
+  .btn:hover { background-color: #45a049; }
+</style>
+</head>
+<body>
+
+<header>Artes Plásticas 🎨</header>
+
+<div id="difficulty-section" class="question-box">
+  <h3>Selecciona la dificultad:</h3>
+  <div class="difficulty-btn" onclick="startQuiz('facil')">Fácil</div>
+  <div class="difficulty-btn" onclick="startQuiz('medio')">Medio</div>
+  <div class="difficulty-btn" onclick="startQuiz('dificil')">Difícil</div>
+</div>
+
+<div class="question-box" id="question-box" style="display:none;"></div>
+<div id="options"></div>
+<div class="result" id="result"></div>
+<button class="btn" id="next-btn" onclick="nextQuestion()" style="display:none;">Siguiente</button>
+<br>
+<a href="index.html" class="btn">⬅ Volver al Menú</a>
+
+<script>
+// Preguntas de Artes Plásticas por dificultad
+const quizQuestions = {
+  facil: [
+    {q:"El color primario que no se puede obtener mezclando otros es:", options:["Rojo","Verde","Naranja","Morado"], answer:"Rojo"},
+    {q:"El pincel se utiliza para:", options:["Pintar","Escribir","Cortar","Esculpir"], answer:"Pintar"},
+    {q:"La obra ‘La Gioconda’ fue pintada por:", options:["Leonardo da Vinci","Van Gogh","Picasso","Rembrandt"], answer:"Leonardo da Vinci"},
+    {q:"El papel para acuarela es:", options:["Especial","Común","Periódico","Cartulina"], answer:"Especial"},
+    {q:"La escultura se realiza con:", options:["Arcilla, piedra o madera","Solo papel","Solo tela","Solo metal"], answer:"Arcilla, piedra o madera"},
+    {q:"El dibujo a lápiz se llama:", options:["Grafito","Acuarela","Oleo","Acrílico"], answer:"Grafito"},
+    {q:"El color verde es mezcla de:", options:["Azul y amarillo","Rojo y azul","Rojo y amarillo","Negro y blanco"], answer:"Azul y amarillo"},
+    {q:"El arte se puede expresar mediante:", options:["Pintura, música, danza","Solo pintura","Solo música","Solo escultura"], answer:"Pintura, música, danza"},
+    {q:"Un lienzo es:", options:["Superficie para pintar","Tipo de pincel","Material de escultura","Técnica de dibujo"], answer:"Superficie para pintar"},
+    {q:"El óleo es un tipo de:", options:["Pintura","Escultura","Dibujo","Fotografía"], answer:"Pintura"}
+  ],
+  medio: [
+    {q:"El impresionismo se caracteriza por:", options:["Captar la luz y el color","Realismo exacto","Arte abstracto","Cubismo"], answer:"Captar la luz y el color"},
+    {q:"Pablo Picasso es famoso por:", options:["Cubismo","Impresionismo","Romanticismo","Barroco"], answer:"Cubismo"},
+    {q:"La perspectiva se utiliza para:", options:["Dar profundidad","Mejorar color","Hacer textura","Esculpir"], answer:"Dar profundidad"},
+    {q:"El arte barroco se caracteriza por:", options:["Exageración y ornamentación","Simplicidad","Minimalismo","Abstracción"], answer:"Exageración y ornamentación"},
+    {q:"El acrílico es un tipo de:", options:["Pintura","Escultura","Dibujo","Grabado"], answer:"Pintura"},
+    {q:"El fresco se realiza sobre:", options:["Pared húmeda","Papel","Lienzo","Madera"], answer:"Pared húmeda"},
+    {q:"El arte abstracto busca:", options:["Formas y colores sin representar la realidad","Copiar la realidad","Contar historias","Esculpir"], answer:"Formas y colores sin representar la realidad"},
+    {q:"El muralismo se desarrolló principalmente en:", options:["México","Italia","España","Francia"], answer:"México"},
+    {q:"El grabado se realiza sobre:", options:["Plancha de metal o madera","Lienzo","Tela","Piedra"], answer:"Plancha de metal o madera"},
+    {q:"El estilo renacentista se enfoca en:", options:["Proporción y armonía","Abstracción","Minimalismo","Exageración"], answer:"Proporción y armonía"}
+  ],
+  dificil: [
+    {q:"El cubismo se caracteriza por:", options:["Fragmentación de formas","Perspectiva clásica","Uso exclusivo de colores primarios","Realismo"], answer:"Fragmentación de formas"},
+    {q:"El barroco se desarrolló en los siglos:", options:["XVII y XVIII","XVI y XVII","XV y XVI","XIX y XX"], answer:"XVII y XVIII"},
+    {q:"El estilo neoclásico enfatiza:", options:["Racionalidad y armonía","Expresividad y emoción","Caos y desorden","Abstracción"], answer:"Racionalidad y armonía"},
+    {q:"El futurismo busca:", options:["Movimiento y velocidad","Calma y serenidad","Realismo exacto","Abstracción geométrica"], answer:"Movimiento y velocidad"},
+    {q:"El fauvismo se caracteriza por:", options:["Colores intensos y no naturales","Tonos neutros","Siluetas detalladas","Perspectiva lineal"], answer:"Colores intensos y no naturales"},
+    {q:"El arte conceptual se enfoca en:", options:["Ideas más que en objetos","Objetos físicos","Pintura clásica","Escultura barroca"], answer:"Ideas más que en objetos"},
+    {q:"El estilo romántico prioriza:", options:["Emoción y subjetividad","Racionalidad","Abstracción","Minimalismo"], answer:"Emoción y subjetividad"},
+    {q:"El artista Salvador Dalí pertenece al:", options:["Surrealismo","Cubismo","Renacimiento","Barroco"], answer:"Surrealismo"},
+    {q:"El puntillismo utiliza:", options:["Pequeños puntos de color","Rayas largas","Sombras","Técnica digital"], answer:"Pequeños puntos de color"},
+    {q:"El arte minimalista se caracteriza por:", options:["Simplicidad y formas básicas","Exceso de ornamentación","Realismo detallado","Uso de perspectiva"], answer:"Simplicidad y formas básicas"}
+  ]
+};
+
+let questions = [];
+let currentQuestion = 0;
+let score = 0;
+
+function startQuiz(difficulty){
+  questions = quizQuestions[difficulty];
+  currentQuestion = 0;
+  score = 0;
+  document.getElementById("difficulty-section").style.display="none";
+  document.getElementById("question-box").style.display="block";
+  showQuestion();
+}
+
+function showQuestion(){
+  const box=document.getElementById("question-box");
+  const opts=document.getElementById("options");
+  const result=document.getElementById("result");
+  const nextBtn=document.getElementById("next-btn");
+
+  if(currentQuestion>=questions.length){
+    box.innerHTML=`<strong>¡Has terminado el quiz!</strong><br>Puntaje final: ${score}/${questions.length}`;
+    opts.innerHTML="";
+    nextBtn.style.display="none";
+    return;
+  }
+
+  const q=questions[currentQuestion];
+  box.textContent=q.q;
+  opts.innerHTML="";
+  result.textContent="";
+  nextBtn.style.display="none";
+
+  q.options.forEach(opt=>{
+    const div=document.createElement("div");
+    div.classList.add("option");
+    div.textContent=opt;
+    div.onclick=()=>checkAnswer(opt,q.answer);
+    opts.appendChild(div);
+  });
+}
+
+function checkAnswer(selected, correct){
+  const result=document.getElementById("result");
+  if(selected===correct){
+    result.textContent="✅ Correcto!";
+    score++;
+  } else {
+    result.textContent=`❌ Incorrecto. Respuesta: ${correct}`;
+  }
+  document.querySelectorAll(".option").forEach(o=>o.onclick=null);
+  document.getElementById("next-btn").style.display="inline-block";
+}
+
+function nextQuestion(){
+  currentQuestion++;
+  showQuestion();
+}
+</script>
+
+</body>
+</html>

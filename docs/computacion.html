@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz de Computación</title>
+<style>
+  body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #ffcc80, #ffb74d);
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    color: #333;
+  }
+  header {
+    background-color: #ff9800;
+    color: white;
+    width: 100%;
+    text-align: center;
+    padding: 15px 0;
+    font-size: 28px;
+    font-weight: bold;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  }
+  .difficulty, .quiz {
+    text-align: center;
+    margin-top: 50px;
+  }
+  .btn {
+    background-color: #ff9800;
+    border: none;
+    color: white;
+    padding: 15px 30px;
+    margin: 15px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 20px;
+    transition: 0.3s;
+  }
+  .btn:hover { background-color: #fb8c00; transform: scale(1.05); }
+  .option {
+    display: block;
+    background-color: #f0f0f0;
+    margin: 12px auto;
+    padding: 15px;
+    width: 60%;
+    max-width: 400px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 18px;
+    transition: 0.3s;
+  }
+  .option:hover { background-color: #dfe6e9; }
+  .result {
+    font-size: 22px;
+    margin-top: 20px;
+  }
+</style>
+</head>
+<body>
+
+<header>💻 Quiz de Computación</header>
+
+<div class="difficulty" id="difficulty">
+  <h2>Selecciona la dificultad</h2>
+  <button class="btn" onclick="selectDifficulty('Fácil')">Fácil</button>
+  <button class="btn" onclick="selectDifficulty('Medio')">Medio</button>
+  <button class="btn" onclick="selectDifficulty('Difícil')">Difícil</button>
+  <br><button class="btn" style="background-color:#9c27b0" onclick="goBack()">⬅ Volver</button>
+</div>
+
+<div class="quiz" id="quiz" style="display:none;">
+  <h2 id="subject-title"></h2>
+  <div id="question-box" style="margin-top:30px; font-size:20px;"></div>
+  <div id="options"></div>
+  <div class="result" id="result"></div>
+  <button class="btn" id="next-btn" onclick="nextQuestion()" style="display:none;">Siguiente</button>
+</div>
+
+<script>
+let selectedDifficulty = "";
+let currentQuestion = 0;
+let score = 0;
+
+const questions = {
+  "Fácil":[
+    {q:"¿Qué significa CPU?", options:["Unidad Central de Procesamiento","Computadora Personal Única","Central Procesadora Universal","Controlador de Procesos Unidos"], answer:"Unidad Central de Procesamiento"},
+    {q:"¿Qué es un software?", options:["Programas y aplicaciones","Parte física de la computadora","Memoria RAM","Disco duro"], answer:"Programas y aplicaciones"},
+    {q:"¿Qué es hardware?", options:["Componentes físicos de la computadora","Programas y aplicaciones","Sistema operativo","Virus"], answer:"Componentes físicos de la computadora"},
+    {q:"¿Qué dispositivo sirve para ingresar datos?", options:["Teclado","Monitor","Impresora","Altavoz"], answer:"Teclado"},
+    {q:"¿Qué significa RAM?", options:["Memoria de acceso aleatorio","Memoria de almacenamiento","Sistema operativo","Tarjeta de video"], answer:"Memoria de acceso aleatorio"},
+    {q:"¿Qué es un sistema operativo?", options:["Software que administra los recursos del computador","Un tipo de computadora","Un periférico","Un lenguaje de programación"], answer:"Software que administra los recursos del computador"},
+    {q:"¿Qué es un navegador?", options:["Programa para acceder a internet","Memoria externa","Dispositivo de salida","Virus informático"], answer:"Programa para acceder a internet"},
+    {q:"¿Qué es un virus informático?", options:["Programa malicioso","Software educativo","Hardware","Sistema operativo"], answer:"Programa malicioso"},
+    {q:"¿Qué es un archivo?", options:["Unidad de información almacenada","Parte del CPU","Software del sistema","Dispositivo de salida"], answer:"Unidad de información almacenada"},
+    {q:"¿Qué es la nube en informática?", options:["Almacenamiento en internet","Un tipo de CPU","Un dispositivo físico","Lenguaje de programación"], answer:"Almacenamiento en internet"}
+  ],
+  "Medio":[
+    {q:"¿Qué lenguaje se usa principalmente para páginas web?", options:["HTML","Python","C++","Java"], answer:"HTML"},
+    {q:"¿Qué es una dirección IP?", options:["Identificador de dispositivo en red","Una contraseña","Un programa","Un virus"], answer:"Identificador de dispositivo en red"},
+    {q:"¿Qué es un algoritmo?", options:["Conjunto de instrucciones","Un tipo de hardware","Un programa antivirus","Una página web"], answer:"Conjunto de instrucciones"},
+    {q:"¿Qué es la memoria ROM?", options:["Memoria de solo lectura","Memoria de acceso aleatorio","Disco duro","CPU"], answer:"Memoria de solo lectura"},
+    {q:"¿Qué significa GUI?", options:["Interfaz gráfica de usuario","Unidad de procesamiento","Lenguaje de programación","Memoria RAM"], answer:"Interfaz gráfica de usuario"},
+    {q:"¿Qué es un periférico?", options:["Dispositivo externo conectado a la computadora","Programa informático","Virus","Sistema operativo"], answer:"Dispositivo externo conectado a la computadora"},
+    {q:"¿Qué es un compilador?", options:["Convierte código fuente en código máquina","Almacena datos","Protege contra virus","Maneja la memoria"], answer:"Convierte código fuente en código máquina"},
+    {q:"¿Qué significa URL?", options:["Localizador de recursos en internet","Unidad de memoria","Lenguaje de programación","Dispositivo"], answer:"Localizador de recursos en internet"},
+    {q:"¿Qué es la inteligencia artificial?", options:["Simulación de procesos inteligentes","Software básico","Memoria RAM","Virus informático"], answer:"Simulación de procesos inteligentes"},
+    {q:"¿Qué es la programación?", options:["Escribir instrucciones para la computadora","Diseñar hardware","Conectar periféricos","Crear virus"], answer:"Escribir instrucciones para la computadora"}
+  ],
+  "Difícil":[
+    {q:"¿Qué es la computación cuántica?", options:["Uso de qubits para procesar información","Uso de CPU tradicional","Programación básica","Redes sociales"], answer:"Uso de qubits para procesar información"},
+    {q:"¿Qué es la arquitectura Von Neumann?", options:["Modelo de diseño de computadora con memoria y CPU","Modelo de software","Lenguaje de programación","Red informática"], answer:"Modelo de diseño de computadora con memoria y CPU"},
+    {q:"¿Qué es un bit?", options:["Unidad mínima de información","CPU","Sistema operativo","Periférico"], answer:"Unidad mínima de información"},
+    {q:"¿Qué es un byte?", options:["Conjunto de 8 bits","Unidad de almacenamiento RAM","Virus informático","Software"], answer:"Conjunto de 8 bits"},
+    {q:"¿Qué es un sistema embebido?", options:["Sistema computacional dentro de un dispositivo","Un lenguaje de programación","Un tipo de RAM","Una interfaz gráfica"], answer:"Sistema computacional dentro de un dispositivo"},
+    {q:"¿Qué es la virtualización?", options:["Crear máquinas virtuales en un computador","Diseñar páginas web","Instalar software","Virus informático"], answer:"Crear máquinas virtuales en un computador"},
+    {q:"¿Qué es un lenguaje de bajo nivel?", options:["Lenguaje cercano a código máquina","HTML","Python","CSS"], answer:"Lenguaje cercano a código máquina"},
+    {q:"¿Qué es la computación en la nube?", options:["Uso de servidores remotos para procesar y almacenar datos","Uso de CPU local","Uso de disco duro","Uso de memoria RAM"], answer:"Uso de servidores remotos para procesar y almacenar datos"},
+    {q:"¿Qué es un sistema distribuido?", options:["Conjunto de computadoras que trabajan juntas","Un solo computador","Una impresora conectada","Software educativo"], answer:"Conjunto de computadoras que trabajan juntas"},
+    {q:"¿Qué es la ciberseguridad?", options:["Protección de sistemas y datos informáticos","Diseño de páginas web","Programación básica","Hardware"], answer:"Protección de sistemas y datos informáticos"}
+  ]
+};
+
+function goBack(){ window.location.href="index.html"; }
+
+function selectDifficulty(level){
+  selectedDifficulty=level;
+  document.getElementById("difficulty").style.display="none";
+  document.getElementById("quiz").style.display="block";
+  startQuiz();
+}
+
+function startQuiz(){
+  currentQuestion=0;
+  score=0;
+  document.getElementById("subject-title").textContent=`Computación (${selectedDifficulty})`;
+  showQuestion();
+}
+
+function showQuestion(){
+  const qList=questions[selectedDifficulty];
+  const box=document.getElementById("question-box");
+  const opts=document.getElementById("options");
+  const result=document.getElementById("result");
+  const nextBtn=document.getElementById("next-btn");
+
+  if(!qList || currentQuestion>=qList.length){
+    box.innerHTML=`<strong>¡Has terminado el quiz!</strong><br>Puntaje final: ${score}/${qList.length}`;
+    opts.innerHTML="";
+    nextBtn.style.display="none";
+    return;
+  }
+
+  const q=qList[currentQuestion];
+  box.textContent=q.q;
+  opts.innerHTML="";
+  result.textContent="";
+  nextBtn.style.display="none";
+
+  q.options.forEach(opt=>{
+    const div=document.createElement("div");
+    div.classList.add("option");
+    div.textContent=opt;
+    div.onclick=()=>checkAnswer(opt,q.answer);
+    opts.appendChild(div);
+  });
+}
+
+function checkAnswer(selected,correct){
+  const result=document.getElementById("result");
+  if(selected===correct){ result.textContent="✅ Correcto!"; score++; }
+  else{ result.textContent=`❌ Incorrecto. Respuesta: ${correct}`; }
+  document.querySelectorAll(".option").forEach(o=>o.onclick=null);
+  document.getElementById("next-btn").style.display="inline-block";
+}
+
+function nextQuestion(){
+  currentQuestion++;
+  showQuestion();
+}
+</script>
+</body>
+</html>
